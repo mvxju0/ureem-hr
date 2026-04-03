@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>직원 정보 수정</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #222;
+    }
+    .wrap {
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    .desc {
+      margin: 0 0 24px;
+      color: #666;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .top-actions button {
+      flex: 1 1 0;
+      min-width: 120px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field.full {
+      grid-column: 1 / -1;
+    }
+    label {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    input, select, button, textarea {
+      width: 100%;
+      border: 1px solid #d8deea;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      background: #fff;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #6b8cff;
+      box-shadow: 0 0 0 3px rgba(107,140,255,0.15);
+    }
+    input[readonly] {
+      background: #f3f4f6;
+      color: #666;
+    }
+    .submit-btn {
+      border: 0;
+      background: #111827;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .secondary-btn {
+      border: 0;
+      background: #e5e7eb;
+      color: #111827;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .home-btn {
+      border: 0;
+      background: #e6007e;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .submit-btn:disabled,
+    .secondary-btn:disabled,
+    .home-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .msg {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      display: none;
+    }
+    .msg.success {
+      display: block;
+      background: #ecfdf3;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+    .msg.error {
+      display: block;
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+    .row-note {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #777;
+    }
+    .history-title {
+      margin: 0 0 14px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .history-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: #f8fafc;
+      padding: 16px;
+    }
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .history-item {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+    }
+    .history-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #666;
+      margin-bottom: 4px;
+    }
+    .history-value {
+      font-size: 14px;
+      color: #111827;
+      word-break: break-word;
+    }
+
+    @media (max-width: 768px) {
+      .wrap {
+        margin: 20px auto;
+        padding: 14px;
+      }
+      .card {
+        padding: 20px;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .top-actions {
+        flex-direction: column;
+      }
+      .top-actions button {
+        flex: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="top-actions">
+        <button type="button" class="submit-btn" id="saveBtnTop">수정완료</button>
+        <button type="button" class="secondary-btn" id="cancelBtn">취소</button>
+        <button type="button" class="home-btn" id="homeBtn">홈으로</button>
+      </div>
+
+      <h1>직원 정보 수정</h1>
+      <p class="desc">
+        관리자만 수정할 수 있다.
+      </p>
+
+      <form id="editForm">
+        <div class="grid">
+          <div class="field">
+            <label for="employee_no">사번</label>
+            <input type="text" id="employee_no" name="employee_no" readonly />
+            <div class="row-note">사번은 현재 수정 제외</div>
+          </div>
+
+          <div class="field">
+            <label for="name">이름</label>
+            <input type="text" id="name" name="name" required />
+          </div>
+
+          <div class="field">
+            <label for="birth_date">생년월일</label>
+            <input type="date" id="birth_date" name="birth_date" required />
+          </div>
+
+          <div class="field">
+            <label for="hire_date">입사일</label>
+            <input type="date" id="hire_date" name="hire_date" required />
+          </div>
+
+          <div class="field">
+            <label for="phone">핸드폰번호</label>
+            <input type="text" id="phone" name="phone" placeholder="01012345678" required />
+          </div>
+
+          <div class="field">
+            <label for="email">이메일</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+
+          <div class="field full">
+            <label for="address">주소</label>
+            <input type="text" id="address" name="address" required />
+          </div>
+
+          <div class="field">
+            <label for="current_store_id">매장</label>
+            <select id="current_store_id" name="current_store_id" required>
+              <option value="">선택</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="current_manager_id">담당</label>
+            <select id="current_manager_id" name="current_manager_id" required>
+              <option value="">선택</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="current_team_leader_id">팀장</label>
+            <select id="current_team_leader_id" name="current_team_leader_id" required>
+              <option value="">선택</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="current_position_id">직급</label>
+            <select id="current_position_id" name="current_position_id" required>
+              <option value="">선택</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="employment_status">재직상태</label>
+            <select id="employment_status" name="employment_status" required>
+              <option value="">선택</option>
+              <option value="재직">재직</option>
+              <option value="퇴사">퇴사</option>
+              <option value="휴직">휴직</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="system_role_id">시스템 권한</label>
+            <select id="system_role_id" name="system_role_id" required>
+              <option value="">선택</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="login_email">로그인 이메일</label>
+            <input type="email" id="login_email" name="login_email" />
+            <div class="row-note">주의: auth.users 이메일은 이 페이지에서 직접 변경되지 않음</div>
+          </div>
+
+          <div class="field">
+            <label for="account_status">계정상태</label>
+            <select id="account_status" name="account_status">
+              <option value="">선택</option>
+              <option value="active">active</option>
+              <option value="locked">locked</option>
+              <option value="disabled">disabled</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="signup_approved">가입 승인 여부</label>
+            <select id="signup_approved" name="signup_approved">
+              <option value="true">승인</option>
+              <option value="false">미승인</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="is_active">사용 여부</label>
+            <select id="is_active" name="is_active" required>
+              <option value="true">활성</option>
+              <option value="false">비활성</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="is_contact_public">연락처 공개 여부</label>
+            <select id="is_contact_public" name="is_contact_public" required>
+              <option value="true">공개</option>
+              <option value="false">비공개</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <button type="submit" class="submit-btn" id="submitBtn">수정완료</button>
+          </div>
+        </div>
+      </form>
+
+      <div id="messageBox" class="msg"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="history-title">수정 히스토리</h2>
+      <div class="history-box">
+        <div class="history-list" id="historyList">
+          <div class="history-item">
+            <div class="history-label">안내</div>
+            <div class="history-value">히스토리 정보를 불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://ytnxmnbctujuopbqpurl.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4oBm89ecivuVF6StOBz7yg_qNBItC4z';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const editForm = document.getElementById('editForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const saveBtnTop = document.getElementById('saveBtnTop');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const homeBtn = document.getElementById('homeBtn');
+    const messageBox = document.getElementById('messageBox');
+    const historyList = document.getElementById('historyList');
+
+    const storeSelect = document.getElementById('current_store_id');
+    const managerSelect = document.getElementById('current_manager_id');
+    const teamLeaderSelect = document.getElementById('current_team_leader_id');
+    const positionSelect = document.getElementById('current_position_id');
+    const systemRoleSelect = document.getElementById('system_role_id');
+
+    let currentUser = null;
+    let targetEmployeeNo = '';
+    let loadedEmployee = null;
+    let loadedAccount = null;
+
+    function showMessage(type, text) {
+      messageBox.className = `msg ${type}`;
+      messageBox.textContent = text;
+      messageBox.style.display = type ? 'block' : 'none';
+    }
+
+    function normalizePhone(phone) {
+      return String(phone || '').replace(/[^0-9]/g, '');
+    }
+
+    function appendOptions(selectEl, list, labelKey) {
+      list.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item[labelKey];
+        selectEl.appendChild(option);
+      });
+    }
+
+    function formatDateTime(value) {
+      if (!value) return '-';
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return value;
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      const ss = String(d.getSeconds()).padStart(2, '0');
+      return `${y}-${m}-${day} ${hh}:${mm}:${ss}`;
+    }
+
+    function renderHistory(employee, account) {
+      const items = [
+        {
+          label: '직원 생성일',
+          value: formatDateTime(employee?.created_at)
+        },
+        {
+          label: '직원 최근 수정일',
+          value: formatDateTime(employee?.updated_at)
+        },
+        {
+          label: '계정 생성일',
+          value: formatDateTime(account?.created_at)
+        },
+        {
+          label: '계정 최근 수정일',
+          value: formatDateTime(account?.updated_at)
+        },
+        {
+          label: '현재 계정 상태',
+          value: account?.account_status || '-'
+        },
+        {
+          label: '현재 로그인 이메일',
+          value: account?.login_email || '-'
+        }
+      ];
+
+      historyList.innerHTML = items.map(item => `
+        <div class="history-item">
+          <div class="history-label">${item.label}</div>
+          <div class="history-value">${item.value}</div>
+        </div>
+      `).join('');
+    }
+
+    async function ensureLoggedIn() {
+      const { data, error } = await supabaseClient.auth.getUser();
+
+      if (error || !data?.user) {
+        location.href = 'index.html';
+        return null;
+      }
+
+      currentUser = data.user;
+      return data.user;
+    }
+
+    function normalizeAccountStatus(status) {
+      return String(status || '').toLowerCase().trim();
+    }
+
+    async function getMyAccount() {
+      const { data, error } = await supabaseClient
+        .from('au_employee_accounts')
+        .select(`
+          employee_no,
+          auth_user_id,
+          signup_approved,
+          account_status
+        `)
+        .eq('auth_user_id', currentUser.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('au_employee_accounts 조회 오류:', error);
+        throw new Error(`내 계정 정보를 불러오지 못했어. 상세 오류: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('로그인된 계정의 직원 연결 정보가 없어.');
+      }
+
+      return data;
+    }
+
+    function validateAccount(account) {
+      const approved = account.signup_approved;
+      const status = normalizeAccountStatus(account.account_status);
+
+      if (!approved) {
+        throw new Error('아직 승인되지 않은 계정이야.');
+      }
+
+      if (status === 'disabled') {
+        throw new Error('비활성화된 계정이야.');
+      }
+
+      if (status === 'locked') {
+        throw new Error('잠긴 계정이야.');
+      }
+    }
+
+    async function getMyEmployeeRole(employeeNo) {
+      const { data: employeeData, error: employeeError } = await supabaseClient
+        .from('au_employees')
+        .select('employee_no, system_role_id')
+        .eq('employee_no', employeeNo)
+        .maybeSingle();
+
+      if (employeeError) {
+        console.error('au_employees 조회 오류:', employeeError);
+        throw new Error(`직원 정보를 불러오지 못했어. 상세 오류: ${employeeError.message}`);
+      }
+
+      if (!employeeData || !employeeData.system_role_id) {
+        return 'viewer';
+      }
+
+      const { data: roleData, error: roleError } = await supabaseClient
+        .from('au_system_roles')
+        .select('id, role_name')
+        .eq('id', employeeData.system_role_id)
+        .maybeSingle();
+
+      if (roleError) {
+        console.error('au_system_roles 조회 오류:', roleError);
+        throw new Error(`권한 정보를 불러오지 못했어. 상세 오류: ${roleError.message}`);
+      }
+
+      return String(roleData?.role_name || 'viewer').toLowerCase();
+    }
+
+    async function ensureAdmin() {
+      await ensureLoggedIn();
+
+      const myAccount = await getMyAccount();
+      validateAccount(myAccount);
+
+      const myRole = await getMyEmployeeRole(myAccount.employee_no);
+
+      if (myRole !== 'admin') {
+        throw new Error('관리자만 접근할 수 있어.');
+      }
+    }
+
+    async function loadSelectOptions() {
+      const [
+        storesRes,
+        managersRes,
+        teamLeadersRes,
+        positionsRes,
+        systemRolesRes
+      ] = await Promise.all([
+        supabaseClient
+          .from('au_stores')
+          .select('id, store_name')
+          .eq('is_active', true)
+          .order('store_name', { ascending: true }),
+
+        supabaseClient
+          .from('au_managers')
+          .select('id, manager_name')
+          .eq('is_active', true)
+          .order('manager_name', { ascending: true }),
+
+        supabaseClient
+          .from('au_team_leaders')
+          .select('id, team_leader_name')
+          .eq('is_active', true)
+          .order('team_leader_name', { ascending: true }),
+
+        supabaseClient
+          .from('au_positions')
+          .select('id, position_name')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true }),
+
+        supabaseClient
+          .from('au_system_roles')
+          .select('id, role_name')
+          .order('role_name', { ascending: true })
+      ]);
+
+      if (storesRes.error) throw new Error(`매장 불러오기 실패: ${storesRes.error.message}`);
+      if (managersRes.error) throw new Error(`담당 불러오기 실패: ${managersRes.error.message}`);
+      if (teamLeadersRes.error) throw new Error(`팀장 불러오기 실패: ${teamLeadersRes.error.message}`);
+      if (positionsRes.error) throw new Error(`직급 불러오기 실패: ${positionsRes.error.message}`);
+      if (systemRolesRes.error) throw new Error(`권한 불러오기 실패: ${systemRolesRes.error.message}`);
+
+      appendOptions(storeSelect, storesRes.data || [], 'store_name');
+      appendOptions(managerSelect, managersRes.data || [], 'manager_name');
+      appendOptions(teamLeaderSelect, teamLeadersRes.data || [], 'team_leader_name');
+      appendOptions(positionSelect, positionsRes.data || [], 'position_name');
+      appendOptions(systemRoleSelect, systemRolesRes.data || [], 'role_name');
+    }
+
+    async function loadEmployeeDetail(employeeNo) {
+      const { data: employee, error: employeeError } = await supabaseClient
+        .from('au_employees')
+        .select(`
+          employee_no,
+          name,
+          birth_date,
+          phone,
+          email,
+          address,
+          hire_date,
+          employment_status,
+          is_active,
+          current_store_id,
+          current_manager_id,
+          current_team_leader_id,
+          current_position_id,
+          system_role_id,
+          is_contact_public,
+          created_at,
+          updated_at
+        `)
+        .eq('employee_no', employeeNo)
+        .maybeSingle();
+
+      if (employeeError) {
+        console.error('employee detail error:', employeeError);
+        throw new Error(`직원 정보 조회 실패: ${employeeError.message}`);
+      }
+
+      if (!employee) {
+        throw new Error('해당 직원 정보를 찾을 수 없어.');
+      }
+
+      const { data: account, error: accountError } = await supabaseClient
+        .from('au_employee_accounts')
+        .select(`
+          employee_no,
+          auth_user_id,
+          login_email,
+          signup_approved,
+          account_status,
+          created_at,
+          updated_at
+        `)
+        .eq('employee_no', employeeNo)
+        .maybeSingle();
+
+      if (accountError) {
+        console.error('employee account detail error:', accountError);
+        throw new Error(`직원 계정 정보 조회 실패: ${accountError.message}`);
+      }
+
+      loadedEmployee = employee;
+      loadedAccount = account || null;
+
+      document.getElementById('employee_no').value = employee.employee_no || '';
+      document.getElementById('name').value = employee.name || '';
+      document.getElementById('birth_date').value = employee.birth_date || '';
+      document.getElementById('hire_date').value = employee.hire_date || '';
+      document.getElementById('phone').value = employee.phone || '';
+      document.getElementById('email').value = employee.email || '';
+      document.getElementById('address').value = employee.address || '';
+      document.getElementById('current_store_id').value = employee.current_store_id ?? '';
+      document.getElementById('current_manager_id').value = employee.current_manager_id ?? '';
+      document.getElementById('current_team_leader_id').value = employee.current_team_leader_id ?? '';
+      document.getElementById('current_position_id').value = employee.current_position_id ?? '';
+      document.getElementById('employment_status').value = employee.employment_status || '재직';
+      document.getElementById('system_role_id').value = employee.system_role_id ?? '';
+      document.getElementById('is_active').value = String(employee.is_active);
+      document.getElementById('is_contact_public').value = String(employee.is_contact_public);
+
+      document.getElementById('login_email').value = account?.login_email || '';
+      document.getElementById('signup_approved').value = String(account?.signup_approved ?? true);
+      document.getElementById('account_status').value = account?.account_status || 'active';
+
+      renderHistory(employee, account);
+    }
+
+    async function updateEmployee(formData) {
+      const employeePayload = {
+        name: formData.name.trim(),
+        birth_date: formData.birth_date,
+        phone: normalizePhone(formData.phone),
+        email: formData.email.trim().toLowerCase(),
+        address: formData.address.trim(),
+        hire_date: formData.hire_date,
+        employment_status: formData.employment_status,
+        is_active: formData.is_active === 'true',
+        current_store_id: Number(formData.current_store_id),
+        current_manager_id: Number(formData.current_manager_id),
+        current_team_leader_id: Number(formData.current_team_leader_id),
+        current_position_id: Number(formData.current_position_id),
+        system_role_id: Number(formData.system_role_id),
+        is_contact_public: formData.is_contact_public === 'true'
+      };
+
+      const { error } = await supabaseClient
+        .from('au_employees')
+        .update(employeePayload)
+        .eq('employee_no', targetEmployeeNo);
+
+      if (error) {
+        console.error('employee update error:', error);
+        throw new Error(`직원 정보 수정 실패: ${error.message}`);
+      }
+    }
+
+    async function updateEmployeeAccount(formData) {
+      if (!loadedAccount) return;
+
+      const accountPayload = {
+        login_email: formData.login_email.trim().toLowerCase(),
+        signup_approved: formData.signup_approved === 'true',
+        account_status: formData.account_status
+      };
+
+      const { error } = await supabaseClient
+        .from('au_employee_accounts')
+        .update(accountPayload)
+        .eq('employee_no', targetEmployeeNo);
+
+      if (error) {
+        console.error('employee account update error:', error);
+        throw new Error(`직원 계정 정보 수정 실패: ${error.message}`);
+      }
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+      showMessage('', '');
+
+      const formData = Object.fromEntries(new FormData(editForm).entries());
+
+      submitBtn.disabled = true;
+      saveBtnTop.disabled = true;
+      submitBtn.textContent = '처리 중...';
+      saveBtnTop.textContent = '처리 중...';
+
+      try {
+        await updateEmployee(formData);
+        await updateEmployeeAccount(formData);
+        await loadEmployeeDetail(targetEmployeeNo);
+
+        showMessage(
+          'success',
+          loadedAccount
+            ? '직원 정보 수정 완료. 로그인 이메일 변경 시 auth.users 동기화는 별도 처리 필요.'
+            : '직원 정보 수정 완료.'
+        );
+      } catch (error) {
+        console.error('edit process error:', error);
+        showMessage('error', error.message || '수정 중 오류가 발생.');
+      } finally {
+        submitBtn.disabled = false;
+        saveBtnTop.disabled = false;
+        submitBtn.textContent = '수정완료';
+        saveBtnTop.textContent = '수정완료';
+      }
+    }
+
+    saveBtnTop.addEventListener('click', () => {
+      editForm.requestSubmit();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      if (loadedEmployee) {
+        loadEmployeeDetail(targetEmployeeNo);
+        showMessage('', '');
+      } else {
+        history.back();
+      }
+    });
+
+    homeBtn.addEventListener('click', () => {
+      location.href = 'front.html';
+    });
+
+    editForm.addEventListener('submit', handleSubmit);
+
+    (async function init() {
+      try {
+        const params = new URLSearchParams(location.search);
+        targetEmployeeNo = params.get('employee_no') || '';
+
+        if (!targetEmployeeNo) {
+          throw new Error('employee_no 파라미터가 없어.');
+        }
+
+        await ensureAdmin();
+        await loadSelectOptions();
+        await loadEmployeeDetail(targetEmployeeNo);
+      } catch (error) {
+        console.error('init error:', error);
+        showMessage('error', `초기 데이터 로딩 실패: ${error.message}`);
+      }
+    })();
+  </script>
+</body>
+</html>

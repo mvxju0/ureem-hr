@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>조직도 시스템 회원가입</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #222;
+    }
+    .wrap {
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    .desc {
+      margin: 0 0 24px;
+      color: #666;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field.full {
+      grid-column: 1 / -1;
+    }
+    label {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    input, select, button, textarea {
+      width: 100%;
+      border: 1px solid #d8deea;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      background: #fff;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #6b8cff;
+      box-shadow: 0 0 0 3px rgba(107,140,255,0.15);
+    }
+    .submit-btn {
+      border: 0;
+      background: #111827;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .submit-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .msg {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      display: none;
+    }
+    .msg.success {
+      display: block;
+      background: #ecfdf3;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+    .msg.error {
+      display: block;
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+    .row-note {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #777;
+    }
+
+    @media (max-width: 768px) {
+      .wrap {
+        margin: 20px auto;
+        padding: 14px;
+      }
+      .card {
+        padding: 20px;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>조직도 시스템 회원가입</h1>
+      <p class="desc">
+        가입 신청 후 관리자 승인이 필요합니다.
+      </p>
+
+      <form id="signupForm">
+        <div class="grid">
+          <div class="field">
+            <label for="employee_no">사번</label>
+            <input type="text" id="employee_no" name="employee_no" required />
+          </div>
+
+          <div class="field">
+            <label for="name">이름</label>
+            <input type="text" id="name" name="name" required />
+          </div>
+
+          <div class="field">
+            <label for="birth_date">생년월일</label>
+            <input type="date" id="birth_date" name="birth_date" required />
+          </div>
+
+          <div class="field">
+            <label for="hire_date">입사일</label>
+            <input type="date" id="hire_date" name="hire_date" required />
+          </div>
+
+          <div class="field">
+            <label for="phone">핸드폰번호</label>
+            <input type="text" id="phone" name="phone" placeholder="01012345678" required />
+          </div>
+
+          <div class="field">
+            <label for="email">이메일</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+
+          <div class="field full">
+            <label for="address">주소</label>
+            <input type="text" id="address" name="address" required />
+          </div>
+
+          <div class="field">
+            <label for="requested_store_id">매장</label>
+            <select id="requested_store_id" name="requested_store_id" required>
+              <option value="">선택</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="requested_manager_id">담당</label>
+            <select id="requested_manager_id" name="requested_manager_id" required>
+              <option value="">선택</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="requested_team_leader_id">팀장</label>
+            <select id="requested_team_leader_id" name="requested_team_leader_id" required>
+              <option value="">선택</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="requested_position_id">직급</label>
+            <select id="requested_position_id" name="requested_position_id" required>
+              <option value="">선택</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password" minlength="8" required />
+            <div class="row-note">8자 이상 입력</div>
+          </div>
+
+          <div class="field">
+            <label for="password_confirm">비밀번호 확인</label>
+            <input type="password" id="password_confirm" name="password_confirm" minlength="8" required />
+          </div>
+
+          <div class="field full">
+            <button type="submit" class="submit-btn" id="submitBtn">가입 신청하기</button>
+          </div>
+        </div>
+      </form>
+
+      <div id="messageBox" class="msg"></div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://ytnxmnbctujuopbqpurl.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4oBm89ecivuVF6StOBz7yg_qNBItC4z';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const signupForm = document.getElementById('signupForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const messageBox = document.getElementById('messageBox');
+
+    const storeSelect = document.getElementById('requested_store_id');
+    const managerSelect = document.getElementById('requested_manager_id');
+    const teamLeaderSelect = document.getElementById('requested_team_leader_id');
+    const positionSelect = document.getElementById('requested_position_id');
+
+    function showMessage(type, text) {
+      messageBox.className = `msg ${type}`;
+      messageBox.textContent = text;
+      messageBox.style.display = type ? 'block' : 'none';
+    }
+
+    function normalizePhone(phone) {
+      return String(phone || '').replace(/[^0-9]/g, '');
+    }
+
+    function appendOptions(selectEl, list, labelKey) {
+      list.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item[labelKey];
+        selectEl.appendChild(option);
+      });
+    }
+
+    async function loadSelectOptions() {
+      const [
+        storesRes,
+        managersRes,
+        teamLeadersRes,
+        positionsRes
+      ] = await Promise.all([
+        supabaseClient
+          .from('au_stores')
+          .select('id, store_name')
+          .eq('is_active', true)
+          .order('store_name', { ascending: true }),
+
+        supabaseClient
+          .from('au_managers')
+          .select('id, manager_name')
+          .eq('is_active', true)
+          .order('manager_name', { ascending: true }),
+
+        supabaseClient
+          .from('au_team_leaders')
+          .select('id, team_leader_name')
+          .eq('is_active', true)
+          .order('team_leader_name', { ascending: true }),
+
+        supabaseClient
+          .from('au_positions')
+          .select('id, position_name')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true })
+      ]);
+
+      console.log('storesRes:', storesRes);
+      console.log('managersRes:', managersRes);
+      console.log('teamLeadersRes:', teamLeadersRes);
+      console.log('positionsRes:', positionsRes);
+
+      if (storesRes.error) throw new Error(`매장 불러오기 실패: ${storesRes.error.message}`);
+      if (managersRes.error) throw new Error(`담당 불러오기 실패: ${managersRes.error.message}`);
+      if (teamLeadersRes.error) throw new Error(`팀장 불러오기 실패: ${teamLeadersRes.error.message}`);
+      if (positionsRes.error) throw new Error(`직급 불러오기 실패: ${positionsRes.error.message}`);
+
+      appendOptions(storeSelect, storesRes.data || [], 'store_name');
+      appendOptions(managerSelect, managersRes.data || [], 'manager_name');
+      appendOptions(teamLeaderSelect, teamLeadersRes.data || [], 'team_leader_name');
+      appendOptions(positionSelect, positionsRes.data || [], 'position_name');
+    }
+
+    async function createSignupRequest(formData, authUserId) {
+      const payload = {
+        auth_user_id: authUserId,
+        employee_no: formData.employee_no.trim(),
+        name: formData.name.trim(),
+        birth_date: formData.birth_date,
+        phone: normalizePhone(formData.phone),
+        email: formData.email.trim().toLowerCase(),
+        address: formData.address.trim(),
+        hire_date: formData.hire_date,
+        requested_store_id: Number(formData.requested_store_id),
+        requested_manager_id: Number(formData.requested_manager_id),
+        requested_team_leader_id: Number(formData.requested_team_leader_id),
+        requested_position_id: Number(formData.requested_position_id),
+        request_status: 'pending'
+      };
+
+      console.log('signup request payload:', payload);
+
+      const { error } = await supabaseClient
+        .from('au_signup_requests')
+        .insert(payload);
+
+      if (error) {
+        console.error('signup request error:', error);
+        throw new Error(error.message);
+      }
+    }
+
+    async function signUpAuth(email, password) {
+      const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password
+      });
+
+      console.log('signUp data:', data);
+      console.log('signUp error:', error);
+      console.log('user:', data?.user);
+      console.log('session:', data?.session);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!data?.user?.id) {
+        throw new Error('회원가입 처리 중 auth user 생성에 실패.');
+      }
+
+      return data.user.id;
+    }
+
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showMessage('', '');
+
+      const formData = Object.fromEntries(new FormData(signupForm).entries());
+
+      if (formData.password !== formData.password_confirm) {
+        showMessage('error', '비밀번호 확인 불일치.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '처리 중...';
+
+      try {
+        const authUserId = await signUpAuth(
+          formData.email.trim().toLowerCase(),
+          formData.password
+        );
+
+        await createSignupRequest(formData, authUserId);
+
+        signupForm.reset();
+
+        showMessage('success', '가입 신청 완료.');
+      } catch (error) {
+        console.error('signup process error:', error);
+        showMessage('error', error.message || '가입 신청 중 오류가 발생.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '가입 신청하기';
+      }
+    });
+
+    (async function init() {
+      try {
+        await loadSelectOptions();
+      } catch (error) {
+        console.error('init error:', error);
+        showMessage('error', `초기 데이터 로딩 실패: ${error.message}`);
+      }
+    })();
+  </script>
+</body>
+</html>
