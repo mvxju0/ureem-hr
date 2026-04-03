@@ -285,10 +285,7 @@ onclick="event.stopPropagation();"
 2. 관리자 버튼 안 보임
    → role 변수 꼬임
 
-3. 연락처 안 보임
-   → select에 public_phone 없음
-
-4. 클릭하면 페이지 이동 안됨
+3. 클릭하면 페이지 이동 안됨
    → stopPropagation 없음
 
 ---
