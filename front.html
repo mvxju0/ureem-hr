@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>사내 조직도</title>
+  <title>운영 대시보드</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; }
@@ -16,7 +16,7 @@
     .wrap {
       max-width: 1240px;
       margin: 0 auto;
-      padding: 20px 14px 40px;
+      padding: 20px 14px 110px;
     }
     .topbar {
       display: flex;
@@ -26,30 +26,10 @@
       flex-wrap: wrap;
       margin-bottom: 14px;
     }
-    .title-area h1 {
-      margin: 0;
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.4px;
-    }
-    .title-area p {
-      margin: 6px 0 0;
-      color: #667085;
-      font-size: 13px;
-    }
-    .top-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    button {
-      border: 0;
-      border-radius: 12px;
-      padding: 11px 14px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-    }
+    .title-area h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.4px; }
+    .title-area p { margin: 6px 0 0; color: #667085; font-size: 13px; }
+    .top-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    button { border: 0; border-radius: 12px; padding: 11px 14px; font-size: 13px; font-weight: 700; cursor: pointer; min-height: 42px; }
     .btn-primary { background: #111827; color: #fff; }
     .btn-secondary { background: #e5e7eb; color: #111827; }
     .btn-admin { background: #e6007e; color: #fff; display: none; }
@@ -63,26 +43,23 @@
       padding: 14px;
     }
 
-    .toolbar {
+    .dashboard-cards {
       display: grid;
-      grid-template-columns: 1.2fr 1fr;
       gap: 10px;
-      align-items: end;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
+    .metric-card { border: 1px solid #eaecf0; border-radius: 14px; padding: 12px; background: #fcfcfd; }
+    .metric-label { font-size: 12px; color: #667085; font-weight: 700; }
+    .metric-value { margin-top: 6px; font-size: 22px; font-weight: 800; color: #111827; }
+
+    .toolbar { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; align-items: end; }
     .field { display: flex; flex-direction: column; gap: 6px; }
     .field label { font-size: 12px; color: #475467; font-weight: 700; }
-    .field input,
-    .field select {
-      height: 42px;
-      border-radius: 12px;
-      border: 1px solid #d0d5dd;
-      padding: 0 11px;
-      font-size: 14px;
-      outline: none;
-      background: #fff;
+    .field input, .field select {
+      height: 42px; border-radius: 12px; border: 1px solid #d0d5dd;
+      padding: 0 11px; font-size: 14px; outline: none; background: #fff;
     }
-    .field input:focus,
-    .field select:focus { border-color: #111827; }
+    .field input:focus, .field select:focus { border-color: #111827; }
 
     .summary {
       display: flex;
@@ -113,11 +90,7 @@
       margin-bottom: 10px;
       flex-wrap: wrap;
     }
-    .major-tab-header h2 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 800;
-    }
+    .major-tab-header h2 { margin: 0; font-size: 16px; font-weight: 800; }
     .tab-scroll {
       display: flex;
       gap: 8px;
@@ -128,7 +101,7 @@
     }
     .tab-chip {
       flex: 0 0 auto;
-      min-height: 38px;
+      min-height: 40px;
       border-radius: 999px;
       border: 1px solid #d0d5dd;
       background: #fff;
@@ -141,89 +114,15 @@
       justify-content: center;
       white-space: nowrap;
     }
-    .tab-chip.active {
-      background: #111827;
-      border-color: #111827;
-      color: #fff;
-    }
-    .tab-chip:disabled {
-      background: #f9fafb;
-      color: #98a2b3;
-      cursor: not-allowed;
-    }
+    .tab-chip.active { background: #111827; border-color: #111827; color: #fff; }
+    .tab-chip:disabled { background: #f9fafb; color: #98a2b3; cursor: not-allowed; }
 
-    .leader-list {
-      display: grid;
-      gap: 12px;
-    }
-    .leader-card {
-      border: 1px solid #e4e7ec;
-      background: #fff;
-      border-radius: 16px;
-      overflow: hidden;
-    }
+    .leader-list { display: grid; gap: 12px; }
+    .leader-card { border: 1px solid #e4e7ec; background: #fff; border-radius: 16px; overflow: hidden; }
     .leader-head {
       background: linear-gradient(180deg, #f8f9fc 0%, #f5f7fb 100%);
       border-bottom: 1px solid #eaecf0;
       padding: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .leader-name {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 800;
-      color: #0f172a;
-    }
-    .leader-meta {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .meta-pill {
-      height: 26px;
-      border-radius: 999px;
-      padding: 0 9px;
-      font-size: 12px;
-      font-weight: 700;
-      background: #eef2ff;
-      color: #3730a3;
-      display: inline-flex;
-      align-items: center;
-    }
-
-    .store-list {
-      padding: 12px;
-      display: grid;
-      gap: 10px;
-    }
-    .store-block {
-      border: 1px solid #eaecf0;
-      border-radius: 12px;
-      background: #fcfcfd;
-      padding: 10px;
-    }
-    .store-title {
-      margin: 0 0 8px;
-      font-size: 14px;
-      font-weight: 800;
-      color: #101828;
-    }
-    .staff-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-      gap: 6px;
-    }
-    .staff-item {
-      border: 1px solid #eaecf0;
-      border-radius: 10px;
-      background: #fff;
-      padding: 8px 9px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -247,44 +146,72 @@
       padding: 2px 8px;
       font-weight: 700;
     }
-    .call-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 28px;
-      border-radius: 999px;
-      padding: 0 10px;
-      text-decoration: none;
-      background: #e6007e;
-      color: #fff;
-      font-size: 12px;
-      font-weight: 700;
-      flex: 0 0 auto;
+    .leader-name { margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; }
+    .leader-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+    .meta-pill {
+      height: 26px; border-radius: 999px; padding: 0 9px; font-size: 12px; font-weight: 700;
+      background: #eef2ff; color: #3730a3; display: inline-flex; align-items: center;
     }
 
-    .loading,
-    .empty,
-    .error-box,
-    .notice-box {
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 16px;
-      padding: 22px 15px;
-      text-align: center;
-      color: #667085;
-      font-size: 14px;
-      line-height: 1.6;
+    .store-list { padding: 12px; display: grid; gap: 10px; }
+    .store-block { border: 1px solid #eaecf0; border-radius: 12px; background: #fcfcfd; padding: 10px; }
+    .store-title { margin: 0 0 8px; font-size: 14px; font-weight: 800; color: #101828; }
+    .staff-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .staff-item {
+      border: 1px solid #eaecf0; border-radius: 10px; background: #fff;
+      padding: 8px 9px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      min-height: 42px;
+    }
+    .staff-item.admin-action { cursor: pointer; }
+    .staff-item.admin-action:hover { background: #eef2ff; }
+    .staff-main { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-width: 0; }
+    .staff-name { font-size: 14px; font-weight: 700; color: #111827; }
+    .staff-position { font-size: 12px; color: #475467; background: #f2f4f7; border-radius: 999px; padding: 2px 8px; font-weight: 700; }
+    .call-btn {
+      display: inline-flex; align-items: center; justify-content: center; min-height: 28px; border-radius: 999px;
+      padding: 0 10px; text-decoration: none; background: #e6007e; color: #fff; font-size: 12px; font-weight: 700; flex: 0 0 auto;
+    }
+
+    .loading, .empty, .error-box, .notice-box {
+      background: #fff; border: 1px solid #eaecf0; border-radius: 16px; padding: 22px 15px; text-align: center;
+      color: #667085; font-size: 14px; line-height: 1.6;
     }
     .notice-box {
-      text-align: left;
-      background: #fffbeb;
-      border-color: #fedf89;
-      color: #7a2e0e;
-      margin-bottom: 10px;
+      text-align: left; background: #fffbeb; border-color: #fedf89; color: #7a2e0e; margin-bottom: 10px;
     }
     .hidden { display: none !important; }
 
-    @media (max-width: 860px) {
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 50;
+      background: #fff;
+      border-top: 1px solid #e4e7ec;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+      gap: 6px;
+    }
+    .nav-item {
+      border-radius: 12px;
+      min-height: 52px;
+      text-decoration: none;
+      color: #667085;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .nav-item.active { background: #111827; color: #fff; }
+    .nav-item .icon { font-size: 16px; line-height: 1; }
+
+    @media (max-width: 960px) {
+      .dashboard-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .toolbar { grid-template-columns: 1fr; }
     }
   </style>
@@ -293,16 +220,23 @@
   <div class="wrap">
     <div class="topbar">
       <div class="title-area">
-        <h1>사내 조직도</h1>
+        <h1>운영 대시보드</h1>
         <p id="welcomeText">사용자 정보를 확인 중...</p>
       </div>
 
       <div class="top-actions">
         <button type="button" class="btn-admin" id="approveBtn">가입승인</button>
-        <button type="button" class="btn-admin" id="storeEditBtn">매장편집</button>
+        <button type="button" class="btn-admin" id="storeEditBtn">매장관리</button>
         <button type="button" class="btn-secondary" id="refreshBtn">새로고침</button>
         <button type="button" class="btn-primary" id="logoutBtn">로그아웃</button>
       </div>
+    </div>
+
+    <div class="panel dashboard-cards">
+      <article class="metric-card"><div class="metric-label">총 직원 수</div><div class="metric-value" id="metricEmployees">0</div></article>
+      <article class="metric-card"><div class="metric-label">조회 매장 수</div><div class="metric-value" id="metricStores">0</div></article>
+      <article class="metric-card"><div class="metric-label">팀장 수</div><div class="metric-value" id="metricLeaders">0</div></article>
+      <article class="metric-card"><div class="metric-label">현재 탭</div><div class="metric-value" id="metricTab">전체</div></article>
     </div>
 
     <div class="panel toolbar">
@@ -327,7 +261,7 @@
 
     <div class="panel">
       <div class="major-tab-header">
-        <h2>대분류</h2>
+        <h2>조직도</h2>
         <span class="muted" id="majorGuideText">대분류 탭으로 팀별 구조를 빠르게 전환할 수 있어.</span>
       </div>
       <div class="tab-scroll" id="majorTabList"></div>
@@ -344,6 +278,14 @@
 
     <div id="leaderList" class="leader-list hidden"></div>
   </div>
+
+  <nav class="bottom-nav" aria-label="하단 네비게이션">
+    <a class="nav-item active" href="front.html"><span class="icon">🏠</span><span>대시보드</span></a>
+    <a class="nav-item" href="employees.html"><span class="icon">👥</span><span>직원</span></a>
+    <a class="nav-item" href="store-edit.html"><span class="icon">🏬</span><span>매장</span></a>
+    <a class="nav-item" href="attendance.html"><span class="icon">🕒</span><span>근태</span></a>
+    <a class="nav-item" href="payroll.html"><span class="icon">💳</span><span>급여</span></a>
+  </nav>
 
   <script>
     const SUPABASE_URL = 'https://ytnxmnbctujuopbqpurl.supabase.co';
@@ -378,8 +320,6 @@
     };
 
     const MAJOR_GROUPS = ['전체', '청주', '충북', '대전', '충남', '부산', '소사장'];
-    // README 원칙 준수: view 컬럼 추측 금지.
-    // 실제 대분류 필터링을 하려면 au_employee_directory_view에 확정 컬럼(예: major_category_name)이 추가되어야 한다.
     const MAJOR_CATEGORY_FIELD = null;
 
     const approveBtn = document.getElementById('approveBtn');
@@ -387,13 +327,16 @@
     const welcomeText = document.getElementById('welcomeText');
     const refreshBtn = document.getElementById('refreshBtn');
     const logoutBtn = document.getElementById('logoutBtn');
-
     const searchInput = document.getElementById('searchInput');
     const positionFilter = document.getElementById('positionFilter');
     const countBadge = document.getElementById('countBadge');
     const leaderBadge = document.getElementById('leaderBadge');
     const roleText = document.getElementById('roleText');
     const statusText = document.getElementById('statusText');
+    const metricEmployees = document.getElementById('metricEmployees');
+    const metricStores = document.getElementById('metricStores');
+    const metricLeaders = document.getElementById('metricLeaders');
+    const metricTab = document.getElementById('metricTab');
 
     const majorTabList = document.getElementById('majorTabList');
     const majorGuideText = document.getElementById('majorGuideText');
@@ -411,27 +354,14 @@
     let selectedMajorGroup = '전체';
 
     function escapeHtml(value) {
-      return String(value ?? '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
+      return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
     }
 
-    function normalizeText(value) {
-      return String(value ?? '').trim();
-    }
-
-    function normalizeAccountStatus(status) {
-      return String(status || '').toLowerCase().trim();
-    }
+    function normalizeText(value) { return String(value ?? '').trim(); }
+    function normalizeAccountStatus(status) { return String(status || '').toLowerCase().trim(); }
 
     function uniqueSortedValues(rows, key) {
-      const values = rows
-        .map((row) => row[key])
-        .filter((v) => normalizeText(v) !== '')
-        .map((v) => normalizeText(v));
+      const values = rows.map((row) => row[key]).filter((v) => normalizeText(v) !== '').map((v) => normalizeText(v));
       return [...new Set(values)].sort((a, b) => a.localeCompare(b, 'ko'));
     }
 
@@ -524,7 +454,6 @@
             matchMajor = false;
           }
         }
-
         return matchKeyword && matchPosition && matchMajor;
       });
     }
@@ -534,10 +463,8 @@
       return [...rows].sort((a, b) => {
         const leaderCompare = normalizeText(a[c.teamLeaderName]).localeCompare(normalizeText(b[c.teamLeaderName]), 'ko');
         if (leaderCompare !== 0) return leaderCompare;
-
         const storeCompare = normalizeText(a[c.storeName]).localeCompare(normalizeText(b[c.storeName]), 'ko');
         if (storeCompare !== 0) return storeCompare;
-
         return normalizeText(a[c.employeeName]).localeCompare(normalizeText(b[c.employeeName]), 'ko');
       });
     }
@@ -595,9 +522,7 @@
       const phoneValue = row[c.publicPhone] ?? row[c.phone] ?? '';
 
       const adminClass = currentRole === 'admin' ? 'admin-action' : '';
-      const adminClick = currentRole === 'admin'
-        ? `onclick="goEdit('${String(employeeNo).replaceAll("'", "\\'")}')"`
-        : '';
+      const adminClick = currentRole === 'admin' ? `onclick="goEdit('${String(employeeNo).replaceAll("'", "\\'")}')"` : '';
 
       return `
         <li class="staff-item ${adminClass}" ${adminClick}>
@@ -632,6 +557,15 @@
       `;
     }
 
+    function updateDashboardMetrics(filteredRows, leaderGroups) {
+      const c = COLUMN_MAP.directory;
+      const storeSet = new Set(filteredRows.map((row) => normalizeText(row[c.storeName])).filter(Boolean));
+      metricEmployees.textContent = String(filteredRows.length);
+      metricStores.textContent = String(storeSet.size);
+      metricLeaders.textContent = String(leaderGroups.length);
+      metricTab.textContent = selectedMajorGroup;
+    }
+
     function renderDirectory() {
       const filteredRows = sortRows(filterRows());
       const leaderGroups = groupByLeaderAndStore(filteredRows);
@@ -640,6 +574,7 @@
       errorBox.classList.add('hidden');
       countBadge.textContent = `총 ${filteredRows.length}명`;
       leaderBadge.textContent = `팀장 ${leaderGroups.length}명`;
+      updateDashboardMetrics(filteredRows, leaderGroups);
 
       if (!filteredRows.length) {
         leaderList.classList.add('hidden');
@@ -652,9 +587,7 @@
       emptyBox.classList.add('hidden');
       leaderList.classList.remove('hidden');
       leaderList.innerHTML = leaderGroups.map(buildLeaderCard).join('');
-      statusText.textContent = currentRole === 'admin'
-        ? '조회 완료 · 직원 클릭 시 수정 페이지로 이동 가능'
-        : '조회 완료';
+      statusText.textContent = currentRole === 'admin' ? '조회 완료 · 직원 클릭 시 수정 페이지로 이동 가능' : '조회 완료';
     }
 
     async function ensureLoggedIn() {
@@ -685,7 +618,6 @@
 
     function validateAccount(account) {
       if (!account.signup_approved) throw new Error('아직 승인되지 않은 계정이야.');
-
       const status = normalizeAccountStatus(account.account_status);
       if (status === 'disabled') throw new Error('비활성화된 계정이야.');
       if (status === 'locked') throw new Error('잠긴 계정이야.');
@@ -771,9 +703,7 @@
       }
     });
 
-    searchInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') renderDirectory();
-    });
+    searchInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') renderDirectory(); });
     searchInput.addEventListener('input', renderDirectory);
     positionFilter.addEventListener('change', renderDirectory);
 
