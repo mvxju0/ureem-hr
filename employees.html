@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>직원 관리</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; background: #f4f6fb; color: #111827; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 14px 110px; }
+    .topbar { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+    .title-area h1 { margin:0; font-size:26px; font-weight:800; }
+    .title-area p { margin:6px 0 0; font-size:13px; color:#667085; }
+    .top-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    button { border:0; border-radius:12px; padding:11px 14px; min-height:42px; font-size:13px; font-weight:700; cursor:pointer; }
+    .btn-primary { background:#111827; color:#fff; }
+    .btn-secondary { background:#e5e7eb; color:#111827; }
+
+    .panel { background:#fff; border:1px solid #eaecf0; border-radius:16px; box-shadow:0 4px 18px rgba(16,24,40,.04); padding:14px; margin-bottom:12px; }
+    .toolbar { display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:10px; align-items:end; }
+    .field { display:flex; flex-direction:column; gap:6px; }
+    .field label { font-size:12px; color:#475467; font-weight:700; }
+    .field input, .field select { height:42px; border-radius:12px; border:1px solid #d0d5dd; padding:0 11px; font-size:14px; }
+    .field input:focus, .field select:focus { outline:none; border-color:#111827; }
+
+    .summary { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+    .badge { display:inline-flex; height:30px; border-radius:999px; align-items:center; padding:0 11px; font-size:12px; font-weight:800; background:#eef2ff; color:#3730a3; }
+    .muted { color:#667085; font-size:13px; }
+
+    .employee-list { display:grid; gap:10px; }
+    .employee-card { border:1px solid #eaecf0; border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; background:#fff; }
+    .employee-main h3 { margin:0; font-size:15px; font-weight:800; }
+    .employee-meta { margin-top:5px; font-size:13px; color:#475467; display:flex; gap:8px; flex-wrap:wrap; }
+
+    .loading,.empty,.error-box { background:#fff; border:1px solid #eaecf0; border-radius:16px; padding:20px 14px; text-align:center; color:#667085; }
+    .hidden { display:none !important; }
+
+    .bottom-nav {
+      position: fixed; left:0; right:0; bottom:0; z-index:50; background:#fff; border-top:1px solid #e4e7ec;
+      display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+    }
+    .nav-item { border-radius:12px; min-height:52px; text-decoration:none; color:#667085; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:11px; font-weight:700; }
+    .nav-item.active { background:#111827; color:#fff; }
+    .icon { font-size:16px; line-height:1; }
+
+    @media (max-width: 860px) { .toolbar { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title-area">
+        <h1>직원 관리</h1>
+        <p>직원 목록을 조회하고 관리자 권한일 때 edit.html로 이동할 수 있어.</p>
+      </div>
+      <div class="top-actions">
+        <button type="button" class="btn-secondary" id="refreshBtn">새로고침</button>
+        <button type="button" class="btn-primary" id="homeBtn">대시보드</button>
+      </div>
+    </div>
+
+    <div id="blockedBox" class="panel hidden" style="text-align:center; color:#666;">관리자 전용 페이지야.</div>
+
+    <div id="appRoot">
+    <div class="panel toolbar">
+      <div class="field">
+        <label for="searchInput">이름 / 사번 검색</label>
+        <input id="searchInput" type="text" placeholder="이름 또는 사번" />
+      </div>
+      <div class="field">
+        <label for="storeFilter">매장</label>
+        <select id="storeFilter"><option value="">전체</option></select>
+      </div>
+      <div class="field">
+        <label for="positionFilter">직급</label>
+        <select id="positionFilter"><option value="">전체</option></select>
+      </div>
+    </div>
+
+    <div class="panel summary">
+      <span class="badge" id="countBadge">총 0명</span>
+      <span class="muted" id="statusText">조회 중...</span>
+    </div>
+
+    <div id="loadingBox" class="loading">직원 목록을 불러오는 중이야.</div>
+    <div id="errorBox" class="error-box hidden"><span id="errorMessage">오류가 발생했어.</span></div>
+    <div id="emptyBox" class="empty hidden">조건에 맞는 직원이 없어.</div>
+    <div id="employeeList" class="employee-list hidden"></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="하단 네비게이션">
+    <a class="nav-item" href="front.html"><span class="icon">🏠</span><span>대시보드</span></a>
+    <a class="nav-item active hidden" data-admin-only="true" href="employees.html"><span class="icon">👥</span><span>직원</span></a>
+    <a class="nav-item hidden" data-admin-only="true" href="store-edit.html"><span class="icon">🏬</span><span>매장</span></a>
+    <a class="nav-item" href="attendance.html"><span class="icon">🕒</span><span>근태</span></a>
+    <a class="nav-item" href="payroll.html"><span class="icon">💳</span><span>급여</span></a>
+  </nav>
+
+  <script>
+    const SUPABASE_URL = 'https://ytnxmnbctujuopbqpurl.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_4oBm89ecivuVF6StOBz7yg_qNBItC4z';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const COLUMN_MAP = {
+      directory: {
+        employeeNo: 'employee_no', employeeName: 'name', storeName: 'store_name', positionName: 'position_name'
+      },
+      account: { employeeNo: 'employee_no', authUserId: 'auth_user_id', signupApproved: 'signup_approved', accountStatus: 'account_status' },
+      employee: { employeeNo: 'employee_no', systemRoleId: 'system_role_id' },
+      role: { id: 'id', roleName: 'role_name' }
+    };
+
+    const homeBtn = document.getElementById('homeBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const searchInput = document.getElementById('searchInput');
+    const storeFilter = document.getElementById('storeFilter');
+    const positionFilter = document.getElementById('positionFilter');
+    const countBadge = document.getElementById('countBadge');
+    const statusText = document.getElementById('statusText');
+    const loadingBox = document.getElementById('loadingBox');
+    const errorBox = document.getElementById('errorBox');
+    const errorMessage = document.getElementById('errorMessage');
+    const emptyBox = document.getElementById('emptyBox');
+    const employeeList = document.getElementById('employeeList');
+    const blockedBox = document.getElementById('blockedBox');
+    const appRoot = document.getElementById('appRoot');
+
+    let allRows = [];
+    let currentUser = null;
+    let currentRole = 'viewer';
+
+    function normalizeText(value) { return String(value ?? '').trim(); }
+    function escapeHtml(value) { return String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;'); }
+    function normalizeAccountStatus(status) { return String(status || '').toLowerCase().trim(); }
+    function setAdminNavVisibility(roleName) {
+      document.querySelectorAll('[data-admin-only="true"]').forEach((el)=>el.classList.toggle('hidden', roleName !== 'admin'));
+    }
+
+    function showError(message) {
+      loadingBox.classList.add('hidden');
+      employeeList.classList.add('hidden');
+      emptyBox.classList.add('hidden');
+      errorBox.classList.remove('hidden');
+      errorMessage.textContent = message;
+      statusText.textContent = '오류 발생';
+    }
+
+    function fillSelect(selectEl, values) {
+      const old = selectEl.value;
+      selectEl.innerHTML = '<option value="">전체</option>';
+      values.forEach((v) => {
+        const op = document.createElement('option');
+        op.value = v;
+        op.textContent = v;
+        selectEl.appendChild(op);
+      });
+      selectEl.value = values.includes(old) ? old : '';
+    }
+
+    function uniqueSorted(rows, key) {
+      return [...new Set(rows.map((row) => normalizeText(row[key])).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
+    }
+
+    function renderList() {
+      const c = COLUMN_MAP.directory;
+      const keyword = normalizeText(searchInput.value).toLowerCase();
+      const storeValue = storeFilter.value;
+      const positionValue = positionFilter.value;
+
+      const rows = allRows
+        .filter((row) => {
+          const no = normalizeText(row[c.employeeNo]).toLowerCase();
+          const name = normalizeText(row[c.employeeName]).toLowerCase();
+          const store = normalizeText(row[c.storeName]);
+          const position = normalizeText(row[c.positionName]);
+          const matchKeyword = !keyword || no.includes(keyword) || name.includes(keyword);
+          const matchStore = !storeValue || store === storeValue;
+          const matchPosition = !positionValue || position === positionValue;
+          return matchKeyword && matchStore && matchPosition;
+        })
+        .sort((a, b) => normalizeText(a[c.employeeName]).localeCompare(normalizeText(b[c.employeeName]), 'ko'));
+
+      loadingBox.classList.add('hidden');
+      errorBox.classList.add('hidden');
+      countBadge.textContent = `총 ${rows.length}명`;
+
+      if (!rows.length) {
+        emptyBox.classList.remove('hidden');
+        employeeList.classList.add('hidden');
+        employeeList.innerHTML = '';
+        statusText.textContent = '검색 결과 없음';
+        return;
+      }
+
+      emptyBox.classList.add('hidden');
+      employeeList.classList.remove('hidden');
+      employeeList.innerHTML = rows.map((row) => {
+        const no = normalizeText(row[c.employeeNo]);
+        const name = normalizeText(row[c.employeeName]) || '-';
+        const store = normalizeText(row[c.storeName]) || '매장 미지정';
+        const position = normalizeText(row[c.positionName]) || '직급 미지정';
+        const editBtn = currentRole === 'admin'
+          ? `<button type="button" class="btn-secondary" onclick="goEdit('${String(no).replaceAll("'", "\\'")}')">수정</button>`
+          : '';
+
+        return `
+          <article class="employee-card">
+            <div class="employee-main">
+              <h3>${escapeHtml(name)} <span style="font-size:12px;color:#667085;">(${escapeHtml(no)})</span></h3>
+              <div class="employee-meta">
+                <span>매장: ${escapeHtml(store)}</span>
+                <span>직급: ${escapeHtml(position)}</span>
+              </div>
+            </div>
+            ${editBtn}
+          </article>
+        `;
+      }).join('');
+
+      statusText.textContent = currentRole === 'admin' ? '목록 조회 완료 · 수정 진입 가능' : '목록 조회 완료';
+    }
+
+    function goEdit(employeeNo) {
+      if (currentRole !== 'admin') return;
+      location.href = `edit.html?employee_no=${encodeURIComponent(employeeNo)}`;
+    }
+    window.goEdit = goEdit;
+
+    async function ensureLoggedIn() {
+      const { data, error } = await supabaseClient.auth.getUser();
+      if (error || !data?.user) {
+        location.href = 'index.html';
+        return null;
+      }
+      currentUser = data.user;
+      return data.user;
+    }
+
+    async function getMyAccount() {
+      const a = COLUMN_MAP.account;
+      const { data, error } = await supabaseClient
+        .from('au_employee_accounts')
+        .select(`${a.employeeNo}, ${a.authUserId}, ${a.signupApproved}, ${a.accountStatus}`)
+        .eq(a.authUserId, currentUser.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('au_employee_accounts 조회 오류:', error);
+        throw new Error(`내 계정 정보를 불러오지 못했어. 상세 오류: ${error.message}`);
+      }
+      if (!data) throw new Error('로그인된 계정의 직원 연결 정보가 없어.');
+      return data;
+    }
+
+    function validateAccount(account) {
+      if (!account.signup_approved) throw new Error('아직 승인되지 않은 계정이야.');
+      const status = normalizeAccountStatus(account.account_status);
+      if (status === 'disabled') throw new Error('비활성화된 계정이야.');
+      if (status === 'locked') throw new Error('잠긴 계정이야.');
+    }
+
+    async function getMyEmployeeRole(employeeNo) {
+      const e = COLUMN_MAP.employee;
+      const r = COLUMN_MAP.role;
+
+      const { data: employeeData, error: employeeError } = await supabaseClient
+        .from('au_employees')
+        .select(`${e.employeeNo}, ${e.systemRoleId}`)
+        .eq(e.employeeNo, employeeNo)
+        .maybeSingle();
+
+      if (employeeError) {
+        console.error('au_employees 조회 오류:', employeeError);
+        throw new Error(`직원 정보를 불러오지 못했어. 상세 오류: ${employeeError.message}`);
+      }
+      if (!employeeData || !employeeData[e.systemRoleId]) return 'viewer';
+
+      const { data: roleData, error: roleError } = await supabaseClient
+        .from('au_system_roles')
+        .select(`${r.id}, ${r.roleName}`)
+        .eq(r.id, employeeData[e.systemRoleId])
+        .maybeSingle();
+
+      if (roleError) {
+        console.error('au_system_roles 조회 오류:', roleError);
+        throw new Error(`권한 정보를 불러오지 못했어. 상세 오류: ${roleError.message}`);
+      }
+
+      return String(roleData?.[r.roleName] || 'viewer').toLowerCase();
+    }
+
+    async function loadEmployees() {
+      const c = COLUMN_MAP.directory;
+      loadingBox.classList.remove('hidden');
+
+      const { data, error } = await supabaseClient
+        .from('au_employee_directory_view')
+        .select(`${c.employeeNo}, ${c.employeeName}, ${c.storeName}, ${c.positionName}`)
+        .order(c.employeeName, { ascending: true });
+
+      if (error) {
+        console.error('au_employee_directory_view 조회 오류:', error);
+        throw new Error(`직원 목록을 불러오지 못했어. 상세 오류: ${error.message}`);
+      }
+
+      allRows = Array.isArray(data) ? data : [];
+      fillSelect(storeFilter, uniqueSorted(allRows, c.storeName));
+      fillSelect(positionFilter, uniqueSorted(allRows, c.positionName));
+      renderList();
+    }
+
+    homeBtn.addEventListener('click', () => { location.href = 'front.html'; });
+    refreshBtn.addEventListener('click', async () => {
+      try {
+        statusText.textContent = '새로고침 중...';
+        await loadEmployees();
+      } catch (err) {
+        console.error(err);
+        showError(err.message || '새로고침 중 오류가 발생했어.');
+      }
+    });
+    searchInput.addEventListener('input', renderList);
+    searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') renderList(); });
+    storeFilter.addEventListener('change', renderList);
+    positionFilter.addEventListener('change', renderList);
+
+    supabaseClient.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') location.replace('index.html');
+    });
+
+    async function init() {
+      try {
+        statusText.textContent = '로그인 확인 중...';
+        await ensureLoggedIn();
+        const account = await getMyAccount();
+        validateAccount(account);
+        currentRole = await getMyEmployeeRole(account.employee_no);
+        setAdminNavVisibility(currentRole);
+        if (currentRole !== 'admin') {
+          appRoot.classList.add('hidden');
+          blockedBox.classList.remove('hidden');
+          statusText.textContent = '접근 권한 없음';
+          return;
+        }
+        blockedBox.classList.add('hidden');
+        appRoot.classList.remove('hidden');
+        await loadEmployees();
+      } catch (err) {
+        console.error(err);
+        showError(err.message || '초기 로딩 중 오류가 발생했어.');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
