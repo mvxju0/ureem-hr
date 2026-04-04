@@ -1,0 +1,83 @@
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; background: #f4f6fb; color: #101828; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 20px 14px 110px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .title-area h1 { margin: 0; font-size: 26px; font-weight: 800; }
+    .title-area p { margin: 6px 0 0; color: #667085; font-size: 13px; }
+    .top-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    button { border: 0; border-radius: 12px; padding: 11px 14px; font-size: 13px; font-weight: 700; cursor: pointer; min-height: 42px; }
+    .btn-primary { background: #111827; color: #fff; }
+    .btn-secondary { background: #e5e7eb; color: #111827; }
+    .btn-admin { background: #e6007e; color: #fff; display: none; }
+
+    .panel { background: #fff; border: 1px solid #eaecf0; border-radius: 18px; box-shadow: 0 4px 18px rgba(16, 24, 40, 0.04); margin-bottom: 12px; padding: 14px; }
+    .dashboard-cards { display: grid; gap: 10px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .metric-card { border: 1px solid #eaecf0; border-radius: 14px; padding: 12px; background: #fcfcfd; }
+    .metric-label { font-size: 12px; color: #667085; font-weight: 700; }
+    .metric-value { margin-top: 6px; font-size: 22px; font-weight: 800; color: #111827; }
+
+    .toolbar { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; align-items: end; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; color: #475467; font-weight: 700; }
+    .field input, .field select { height: 42px; border-radius: 12px; border: 1px solid #d0d5dd; padding: 0 11px; font-size: 14px; outline: none; background: #fff; }
+
+    .summary { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .summary-left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .badge { display: inline-flex; align-items: center; height: 30px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-size: 12px; font-weight: 800; padding: 0 11px; }
+    .muted { color: #667085; font-size: 13px; }
+
+    .major-tab-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    .major-tab-header h2 { margin: 0; font-size: 16px; font-weight: 800; }
+    .tab-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+    .tab-chip { flex: 0 0 auto; min-height: 40px; border-radius: 999px; border: 1px solid #d0d5dd; background: #fff; color: #344054; padding: 0 14px; font-size: 13px; font-weight: 700; }
+    .tab-chip.active { background: #111827; border-color: #111827; color: #fff; }
+    .tab-chip:disabled { background: #f9fafb; color: #98a2b3; cursor: not-allowed; }
+
+    .leader-list { display: grid; gap: 12px; }
+    .leader-card { border: 1px solid #c8d4ff; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 16px rgba(37,99,235,.10); }
+    .leader-head {
+      background: linear-gradient(135deg, #1d4ed8 0%, #312e81 100%);
+      border-bottom: 1px solid #c7d2fe;
+      padding: 14px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .leader-title-wrap { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .leader-label { font-size: 11px; font-weight: 800; color: #dbeafe; background: rgba(255,255,255,.15); padding: 4px 8px; border-radius: 999px; }
+    .leader-name { margin: 0; font-size: 17px; font-weight: 900; color: #fff; letter-spacing: -.2px; }
+    .leader-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+    .meta-pill { height: 26px; border-radius: 999px; padding: 0 9px; font-size: 12px; font-weight: 700; background: #eef2ff; color: #3730a3; display: inline-flex; align-items: center; }
+
+    .leader-contact-wrap, .staff-contact-wrap { display:flex; gap:6px; align-items:center; }
+    .contact-btn { display:inline-flex; align-items:center; justify-content:center; min-height:28px; border-radius:999px; padding:0 10px; text-decoration:none; font-size:12px; font-weight:700; }
+    .call-btn { background:#e6007e; color:#fff; }
+    .sms-btn { background:#0ea5e9; color:#fff; }
+
+    .store-list { padding: 12px; display: grid; gap: 10px; background:#f8fbff; }
+    .store-block { border: 1px solid #dbe5f8; border-radius: 12px; background: #fff; padding: 10px; }
+    .store-title { margin: 0 0 8px; font-size: 14px; font-weight: 800; color: #101828; }
+    .staff-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .staff-item { border: 1px solid #eaecf0; border-radius: 10px; background: #fff; padding: 8px 9px; display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 42px; }
+    .staff-item.admin-action { cursor: pointer; }
+    .staff-item.admin-action:hover { background: #eef2ff; }
+    .staff-main { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-width: 0; }
+    .staff-name { font-size: 14px; font-weight: 700; color: #111827; }
+    .staff-position { font-size: 12px; color: #475467; background: #f2f4f7; border-radius: 999px; padding: 2px 8px; font-weight: 700; }
+
+    .loading, .empty, .error-box, .notice-box { background: #fff; border: 1px solid #eaecf0; border-radius: 16px; padding: 22px 15px; text-align: center; color: #667085; font-size: 14px; line-height: 1.6; }
+    .notice-box { text-align: left; background: #fffbeb; border-color: #fedf89; color: #7a2e0e; margin-bottom: 10px; }
+    .hidden { display: none !important; }
+
+    .bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: #fff; border-top: 1px solid #e4e7ec; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 8px 6px calc(8px + env(safe-area-inset-bottom)); gap: 6px; }
+    .nav-item { border-radius: 12px; min-height: 52px; text-decoration: none; color: #667085; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 700; }
+    .nav-item.active { background: #111827; color: #fff; }
+    .nav-item .icon { font-size: 16px; line-height: 1; }
+
+    @media (max-width: 960px) {
+      .dashboard-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .toolbar { grid-template-columns: 1fr; }
+    }
+  
