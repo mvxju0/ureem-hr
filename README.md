@@ -1,325 +1,100 @@
-# 📌 프로젝트 개요
-
-이 시스템은 사내 직원 조직도 관리 시스템이다.
-
-주요 기능:
-
-* 직원 조직도 조회 (front.html)
-* 직원 정보 수정 (edit.html, 관리자 전용)
-* 회원가입 신청 및 승인 (auth.html / auth-requests.html)
-* 매장 / 담당 / 팀장 / 직급 기반 조직 구조 관리
-
-기술 스택:
-
-* HTML / CSS / Vanilla JS
-* Supabase Auth + Postgres
-
----
-
-# 📌 페이지 구조
-
-index.html → 로그인
-auth.html → 회원가입 신청
-auth-requests.html → 가입 승인 (관리자)
-front.html → 조직도 조회 (전체 사용자)
-edit.html → 직원 정보 수정 (관리자)
-store-edit.html → 매장 관리 (예정)
-
----
-
-# 📌 핵심 구조 (매우 중요)
-
-시스템은 아래 4단 구조다:
-
-1. auth.users (Supabase 인증)
-2. au_employee_accounts (로그인 연결)
-3. au_employees (직원 본체)
-4. au_employee_directory_view (조회용 view)
-
-절대 이 구조를 벗어나면 안 된다.
-
----
-
-# 📌 DB 테이블 구조
-
-## 1. au_signup_requests (가입 신청)
-
-* id
-* auth_user_id
-* employee_no
-* name
-* birth_date
-* phone
-* email
-* address
-* hire_date
-* requested_store_id
-* requested_manager_id
-* requested_team_leader_id
-* requested_position_id
-* request_status (pending / approved / rejected)
-* reviewed_by_employee_no
-* reviewed_at
-* reject_reason
-* created_at
-* updated_at
-
-👉 실제 조직 반영 전 대기 테이블
-
----
-
-## 2. au_employees (직원 본체)
-
-* employee_no (PK)
-* name
-* birth_date
-* phone
-* email
-* address
-* hire_date
-* employment_status
-* is_active
-* current_store_id
-* current_manager_id
-* current_team_leader_id
-* current_position_id
-* system_role_id
-* is_contact_public
-* created_at
-* updated_at
-
-👉 조직 / 권한 / 소속의 기준
-
----
-
-## 3. au_employee_accounts (로그인 연결)
-
-* employee_no
-* auth_user_id
-* login_email
-* signup_approved
-* account_status
-* failed_login_count
-* created_at
-* updated_at
-
-👉 로그인 가능 여부 판단 기준
-
----
-
-## 4. au_system_roles (권한)
-
-* id
-* role_name
-
-예:
-
-* admin
-* viewer
-
----
-
-## 5. 조직 마스터 테이블
-
-### au_stores
-
-* id
-* store_name
-* is_active
-
-### au_managers
-
-* id
-* manager_name
-* is_active
-
-### au_team_leaders
-
-* id
-* team_leader_name
-* is_active
-
-### au_positions
-
-* id
-* position_name
-* sort_order
-* is_active
-
----
-
-## 6. 조직도 view
-
-au_employee_directory_view
-
-컬럼:
-
-* employee_no
-* name
-* store_name
-* manager_name
-* team_leader_name
-* position_name
-* public_phone
-
-👉 front는 무조건 이 view 사용
-
----
-
-# 📌 로그인 구조
-
-1. index에서 로그인
-2. au_employee_accounts 조회
-3. signup_approved 확인
-4. account_status 확인
-5. Supabase 로그인
-6. front 이동
-7. front에서 다시 auth.getUser()
-8. employee_no 확인
-9. system_role_id 조회
-10. role_name 조회
-
----
-
-# 📌 관리자 판별 로직 (절대 변경 금지)
-
-1. au_employee_accounts → employee_no
-2. au_employees → system_role_id
-3. au_system_roles → role_name
-
-role_name === 'admin' → 관리자
-
----
-
-# 📌 front.html 기능
-
-* 조직도 표 출력
-
-* 컬럼:
-  담당 / 팀장 / 매장 / 직원명 / 직급 / 연락처
-
-* 기능:
-
-  * 검색 (이름/사번)
-  * 필터 (매장/담당/팀장/직급)
-  * 직급별 요약 표시
-  * 통화 버튼 (tel 링크)
-
-* 관리자 기능:
-
-  * 가입승인 버튼
-  * 매장편집 버튼
-  * 직원 클릭 시 edit 이동
-
----
-
-# 📌 연락처 통화 버튼 규칙
-
-반드시 이 방식 사용:
-
-```html
-<a href="tel:01012345678">통화</a>
+# 유림 HR 운영관리 시스템
+
+## 1) 프로젝트 개요
+사내 직원/조직도 운영을 위한 정적 HTML + Supabase 기반 관리 시스템이다.
+
+- 인증: Supabase Auth
+- 데이터: Postgres + RPC
+- UI: HTML/CSS/Vanilla JS
+
+## 2) 페이지 구조
+- `index.html` : 로그인
+- `auth.html` : 회원가입 신청
+- `auth-requests.html` : 가입 승인/거절(관리자)
+- `front.html` : 운영 대시보드 + 조직도 조회
+- `employees.html` : 직원 목록/검색 + edit 진입(관리자)
+- `edit.html` : 직원 정보 수정(관리자)
+- `store-edit.html` : 매장 관리(관리자)
+- `attendance.html` : 근태 placeholder
+- `payroll.html` : 급여 placeholder
+
+## 3) assets 구조
+
+```text
+assets/
+ ├── css/
+ │   ├── common.css      # 공통 reset/hidden/base
+ │   ├── layout.css      # 공통 레이아웃 래퍼/상단
+ │   ├── nav.css         # 하단 네비 공통 스타일
+ │   ├── dashboard.css   # front 전용
+ │   ├── employee.css    # employees 전용
+ │   ├── store.css       # store-edit 전용
+ │   ├── auth.css        # index/auth 전용
+ │   ├── admin.css       # auth-requests 전용
+ │   └── edit.css        # edit 전용
+ │
+ └── js/
+     ├── supabase.js       # Supabase 클라이언트 생성 공통
+     ├── auth-common.js    # 공통 유틸(normalize/escape)
+     ├── nav.js            # admin 메뉴 노출 공통
+     ├── dashboard.js      # front 전용
+     ├── employee.js       # employees 전용
+     ├── store.js          # store-edit 전용
+     ├── auth-requests.js  # 가입승인 전용
+     ├── login.js          # index 전용
+     ├── signup.js         # auth 전용
+     ├── edit.js           # edit 전용
+     └── placeholders.js   # attendance/payroll 공용
 ```
 
-* 모바일: 바로 전화 연결
-* PC: 환경 따라 다름
+## 4) 핵심 원칙
+- DB 구조/컬럼 추측 금지
+- direct join 남용 금지
+- `front`는 조회 중심(`au_employee_directory_view`)
+- 관리자 판별 순서 고정
+  1) `au_employee_accounts`
+  2) `au_employees`
+  3) `au_system_roles`
+- `auth.users -> accounts -> employees -> role` 구조 유지
+- 공통 로직은 `assets/js/*`로 분리, 페이지 전용은 해당 파일에만 작성
 
-row 클릭 충돌 방지 필수:
+## 5) 권한 구조
+- `admin`: 직원/매장/가입승인/수정 기능 접근 가능
+- `viewer`: 조회 중심(대시보드 + placeholder 메뉴)
 
-```html
-onclick="event.stopPropagation();"
-```
+관리자 전용 메뉴:
+- 직원
+- 매장
+- 가입승인
+- 직원/매장 수정 화면
 
----
+## 6) 하단 네비 구조
+1. 대시보드 (`front.html`)
+2. 직원 (`employees.html`, admin only)
+3. 매장 (`store-edit.html`, admin only)
+4. 근태 (`attendance.html`)
+5. 급여 (`payroll.html`)
 
-# 📌 edit.html 기능
+## 7) 현재 상태
+- 구현 완료: 로그인/회원가입 신청/가입승인/대시보드/직원목록/직원수정/매장관리
+- placeholder: 근태, 급여
+- 향후 확장: 근태/급여 실데이터 연동, 조직도 대분류 확장 컬럼 연계
 
-* 직원 정보 수정
-* employees + accounts 동시 수정
-
-수정 대상:
-
-* 이름
-* 전화번호
-* 이메일
-* 주소
-* 매장
-* 담당
-* 팀장
-* 직급
-* 권한
-* 계정 상태
-
----
-
-# 📌 auth.html
-
-* 회원가입 신청
-* au_signup_requests insert
-
----
-
-# 📌 auth-requests.html
-
-* 승인 시:
-
-  * au_employees insert
-  * au_employee_accounts insert
+## 8) 유지보수 가이드
+- 새 페이지 추가 시
+  - 공통 스타일: `common/layout/nav`
+  - 페이지 스타일: 새 `assets/css/<page>.css`
+  - 공통 로직: `supabase.js`, `auth-common.js`, `nav.js`
+  - 페이지 로직: 새 `assets/js/<page>.js`
+- HTML에는 대형 `<style>`, 대형 인라인 `<script>`를 두지 않는다.
+- 페이지별로 필요한 CSS/JS만 로드한다.
 
 ---
 
-# 📌 절대 금지 사항
+## 데이터 구조(중요)
+- `auth.users`
+- `au_employee_accounts`
+- `au_employees`
+- `au_employee_directory_view`
 
-❌ 컬럼명 추측 금지
-❌ 테이블 구조 추측 금지
-❌ view 안 쓰고 직접 join 금지
-❌ myRole / currentRole 혼용 금지
-
----
-
-# 📌 자주 발생하는 오류
-
-1. JS 전체 멈춤
-   → return 위치 오류
-
-2. 관리자 버튼 안 보임
-   → role 변수 꼬임
-
-3. 클릭하면 페이지 이동 안됨
-   → stopPropagation 없음
-
----
-
-# 📌 반드시 지켜야 할 원칙
-
-1. front는 조회용이다 (절대 막히면 안 됨)
-2. edit는 관리자 전용이다
-3. 조직도는 view 기준이다
-4. 권한 판별은 지정된 순서만 사용한다
-5. 디버깅 시 console.error 필수
-
----
-
-# 📌 현재 상태
-
-* front: 완성
-* edit: 완성
-* auth: 완료
-* 승인: 완료
-* 매장편집: 미완성
-
----
-
-# 📌 다음 작업
-
-우선순위:
-
-1. store-edit.html 구현
-2. 수정 로그 테이블 추가
-3. edit 로그 저장 기능
-4. 권한 세분화
-
----
-
-이 구조를 기반으로 유지보수 및 기능 추가를 진행한다.
-모든 작업은 위 구조를 절대 기준으로 한다.
+위 구조를 벗어나지 않는다.
