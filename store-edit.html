@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>매장 편성 관리</title>
+  
+  <link rel="stylesheet" href="assets/css/common.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/nav.css" />
+  <link rel="stylesheet" href="assets/css/store.css" />
+
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title-area">
+        <h1>매장 편성 관리</h1>
+        <p>
+          관리자 전용 페이지야. 현재 DB에서 확정된 매장 필드(`id`, `store_name`, `is_active`)를 우선 관리하고,
+          대분류/팀장/노출순서는 구조 확장 항목으로 분리해 두었어.
+        </p>
+      </div>
+      <div class="top-actions">
+        <button type="button" class="btn-secondary" id="homeBtn">홈으로</button>
+        <button type="button" class="btn-secondary" id="refreshBtn">새로고침</button>
+        <button type="button" class="btn-primary" id="createBtn">신규 매장 추가</button>
+      </div>
+    </div>
+
+    <div id="blockedBox" class="blocked-box hidden">
+      관리자만 접근할 수 있어. 조직도 페이지로 이동해줘.
+      <div style="margin-top:10px;"><button type="button" class="btn-primary" id="goFrontBtn">front로 이동</button></div>
+    </div>
+
+    <div id="appRoot" class="hidden">
+      <div class="panel summary">
+        <div class="summary-left">
+          <span class="badge" id="totalBadge">전체 0개</span>
+          <span class="badge" id="activeBadge">활성 0개</span>
+          <span class="muted" id="roleText">권한 확인 중...</span>
+        </div>
+        <span class="muted" id="statusText">데이터 로딩 중...</span>
+      </div>
+
+      <div class="panel">
+        <div class="filter-grid">
+          <div class="field">
+            <label for="searchInput">매장명 검색</label>
+            <input type="text" id="searchInput" placeholder="매장명 입력" />
+          </div>
+          <div class="field">
+            <label for="activeFilter">활성 상태</label>
+            <select id="activeFilter">
+              <option value="">전체</option>
+              <option value="active">활성</option>
+              <option value="inactive">비활성</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="majorFilter">대분류</label>
+            <select id="majorFilter" disabled>
+              <option>구조 확장 필요</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="teamLeaderFilter">소속 팀장</label>
+            <select id="teamLeaderFilter" disabled>
+              <option>구조 확장 필요</option>
+            </select>
+          </div>
+          <button type="button" class="btn-secondary" id="resetBtn">필터 초기화</button>
+        </div>
+      </div>
+
+      <div id="feedbackBox" class="feedback hidden"></div>
+
+      <div class="panel notice-box">
+        현재 DB 기준으로 `대분류`, `소속 팀장`, `노출 순서`는 `au_stores`에 확정 컬럼이 공개되지 않아 읽기/수정 로직을 넣지 않았어.
+        가짜 컬럼명 추측 없이, 필요한 구조는 하단 확장 안내에 명시했어.
+      </div>
+
+      <div class="content-grid">
+        <section class="panel">
+          <h2 style="margin:0 0 10px; font-size:17px;">매장 목록</h2>
+          <div id="loadingBox" class="loading">매장 목록을 불러오는 중이야.</div>
+          <div id="errorBox" class="error-box hidden"><span id="errorMessage">오류가 발생했어.</span></div>
+          <div id="emptyBox" class="empty hidden">조건에 맞는 매장이 없어.</div>
+          <div id="storeList" class="store-list hidden"></div>
+        </section>
+
+        <aside class="panel editor-panel">
+          <h2 id="editorTitle">신규 매장 추가</h2>
+          <form id="editorForm" class="editor-form">
+            <div class="field">
+              <label for="storeNameInput">매장명 *</label>
+              <input type="text" id="storeNameInput" maxlength="100" required />
+            </div>
+            <div class="field">
+              <label for="storeActiveInput">활성 여부 *</label>
+              <select id="storeActiveInput" required>
+                <option value="true">활성</option>
+                <option value="false">비활성</option>
+              </select>
+            </div>
+
+            <p class="editor-note">
+              대분류/소속 팀장/노출순서는 현재 `au_stores` 확정 컬럼이 없어 이 폼에 포함하지 않았어.
+              컬럼 확정 후 해당 필드를 활성화할 수 있어.
+            </p>
+
+            <div class="editor-actions">
+              <button type="submit" class="btn-primary" id="saveBtn">저장</button>
+              <button type="button" class="btn-secondary" id="cancelBtn">취소</button>
+              <button type="button" class="btn-danger" id="deleteBtn">삭제</button>
+            </div>
+          </form>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="하단 네비게이션">
+    <a class="nav-item" href="front.html"><span class="icon">🏠</span><span>대시보드</span></a>
+    <a class="nav-item hidden" data-admin-only="true" href="employees.html"><span class="icon">👥</span><span>직원</span></a>
+    <a class="nav-item active hidden" data-admin-only="true" href="store-edit.html"><span class="icon">🏬</span><span>매장</span></a>
+    <a class="nav-item" href="attendance.html"><span class="icon">🕒</span><span>근태</span></a>
+    <a class="nav-item" href="payroll.html"><span class="icon">💳</span><span>급여</span></a>
+  </nav>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js"></script>
+  <script src="assets/js/auth-common.js"></script>
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/store.js"></script>
+</body>
+</html>
