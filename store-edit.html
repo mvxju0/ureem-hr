@@ -64,9 +64,21 @@
             </select>
           </div>
           <div class="field">
+            <label for="managerFilter">담당</label>
+            <select id="managerFilter">
+              <option value="">전체 담당</option>
+            </select>
+          </div>
+          <div class="field">
             <label for="teamLeaderFilter">소속 팀장</label>
-            <select id="teamLeaderFilter" disabled>
-              <option>구조 확장 필요</option>
+            <select id="teamLeaderFilter">
+              <option value="">담당을 먼저 선택하세요</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="storeFilter">매장</label>
+            <select id="storeFilter">
+              <option value="">팀장을 먼저 선택하세요</option>
             </select>
           </div>
           <button type="button" class="btn-secondary" id="resetBtn">필터 초기화</button>
@@ -76,8 +88,8 @@
       <div id="feedbackBox" class="feedback hidden"></div>
 
       <div class="panel notice-box">
-        현재 DB 기준으로 `대분류`, `소속 팀장`, `노출 순서`는 `au_stores`에 확정 컬럼이 공개되지 않아 읽기/수정 로직을 넣지 않았어.
-        가짜 컬럼명 추측 없이, 필요한 구조는 하단 확장 안내에 명시했어.
+        현재 DB 기준으로 `대분류`, `노출 순서`는 `au_stores` 확정 컬럼이 공개되지 않아 읽기/수정 로직을 넣지 않았어.
+        단, 담당→팀장→매장 드롭다운 필터는 기존 `au_employees`의 실제 연결값(current_manager_id/current_team_leader_id/current_store_id) 기반으로 적용했어.
       </div>
 
       <div class="content-grid">
@@ -105,7 +117,7 @@
             </div>
 
             <p class="editor-note">
-              대분류/소속 팀장/노출순서는 현재 `au_stores` 확정 컬럼이 없어 이 폼에 포함하지 않았어.
+              대분류/노출순서는 현재 `au_stores` 확정 컬럼이 없어 이 폼에 포함하지 않았어.
               컬럼 확정 후 해당 필드를 활성화할 수 있어.
             </p>
 

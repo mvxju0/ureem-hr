@@ -38,6 +38,9 @@
 
     const searchInput = document.getElementById('searchInput');
     const activeFilter = document.getElementById('activeFilter');
+    const managerFilter = document.getElementById('managerFilter');
+    const teamLeaderFilter = document.getElementById('teamLeaderFilter');
+    const storeFilter = document.getElementById('storeFilter');
 
     const feedbackBox = document.getElementById('feedbackBox');
 
@@ -58,8 +61,13 @@
     let currentUser = null;
     let currentRole = 'viewer';
     let allStores = [];
+    let allManagers = [];
+    let allTeamLeaders = [];
     let selectedStoreId = null;
     let isSaving = false;
+
+    let teamLeaderIdsByManager = new Map();
+    let storeIdsByTeamLeader = new Map();
 
     function setAdminNavVisibility(roleName) {
       document.querySelectorAll('[data-admin-only="true"]').forEach((el)=>el.classList.toggle('hidden', roleName !== 'admin'));
@@ -84,6 +92,109 @@
 
     function normalizeAccountStatus(status) {
       return String(status || '').toLowerCase().trim();
+    }
+
+
+    function clearSelectOptions(selectEl, placeholder) {
+      selectEl.innerHTML = '';
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = placeholder;
+      selectEl.appendChild(option);
+    }
+
+    function appendSelectOptions(selectEl, items, labelKey) {
+      items.forEach((item) => {
+        const option = document.createElement('option');
+        option.value = String(item.id);
+        option.textContent = item[labelKey];
+        selectEl.appendChild(option);
+      });
+    }
+
+    function buildHierarchyMap(rows) {
+      teamLeaderIdsByManager = new Map();
+      storeIdsByTeamLeader = new Map();
+
+      (rows || []).forEach((row) => {
+        const managerId = row.current_manager_id;
+        const teamLeaderId = row.current_team_leader_id;
+        const storeId = row.current_store_id;
+
+        if (managerId && teamLeaderId) {
+          if (!teamLeaderIdsByManager.has(managerId)) {
+            teamLeaderIdsByManager.set(managerId, new Set());
+          }
+          teamLeaderIdsByManager.get(managerId).add(teamLeaderId);
+        }
+
+        if (teamLeaderId && storeId) {
+          if (!storeIdsByTeamLeader.has(teamLeaderId)) {
+            storeIdsByTeamLeader.set(teamLeaderId, new Set());
+          }
+          storeIdsByTeamLeader.get(teamLeaderId).add(storeId);
+        }
+      });
+    }
+
+    function refreshManagerFilter() {
+      clearSelectOptions(managerFilter, '전체 담당');
+      appendSelectOptions(managerFilter, allManagers, 'manager_name');
+      managerFilter.value = '';
+    }
+
+    function refreshTeamLeaderFilter({ preserveValue = false } = {}) {
+      const prev = preserveValue ? teamLeaderFilter.value : '';
+      const managerId = managerFilter.value;
+
+      if (!managerId) {
+        clearSelectOptions(teamLeaderFilter, '담당을 먼저 선택하세요');
+        teamLeaderFilter.disabled = true;
+        teamLeaderFilter.value = '';
+        return;
+      }
+
+      const allowedIds = teamLeaderIdsByManager.get(Number(managerId));
+      const filtered = allowedIds
+        ? allTeamLeaders.filter((leader) => allowedIds.has(leader.id))
+        : [];
+
+      clearSelectOptions(teamLeaderFilter, filtered.length ? '전체 팀장' : '선택 가능한 팀장 없음');
+      appendSelectOptions(teamLeaderFilter, filtered, 'team_leader_name');
+      teamLeaderFilter.disabled = false;
+
+      if (preserveValue && filtered.some((leader) => String(leader.id) === String(prev))) {
+        teamLeaderFilter.value = prev;
+      } else {
+        teamLeaderFilter.value = '';
+      }
+    }
+
+    function refreshStoreFilter({ preserveValue = false } = {}) {
+      const prev = preserveValue ? storeFilter.value : '';
+      const teamLeaderId = teamLeaderFilter.value;
+
+      if (!teamLeaderId) {
+        clearSelectOptions(storeFilter, '팀장을 먼저 선택하세요');
+        storeFilter.disabled = true;
+        storeFilter.value = '';
+        return;
+      }
+
+      const allowedIds = storeIdsByTeamLeader.get(Number(teamLeaderId));
+      const filtered = allowedIds
+        ? allStores.filter((store) => allowedIds.has(store.id))
+        : [];
+
+      clearSelectOptions(storeFilter, filtered.length ? '전체 매장' : '선택 가능한 매장 없음');
+      appendSelectOptions(storeFilter, filtered, 'store_name');
+      storeFilter.disabled = false;
+
+      if (preserveValue && filtered.some((store) => String(store.id) === String(prev))) {
+        storeFilter.value = prev;
+      } else {
+        storeFilter.value = '';
+      }
     }
 
     function setLoading(isLoading) {
@@ -169,6 +280,7 @@
     function filterStores() {
       const keyword = normalizeText(searchInput.value).toLowerCase();
       const activeValue = activeFilter.value;
+      const selectedStoreFilter = storeFilter.value;
 
       return allStores.filter((store) => {
         const name = normalizeText(store.store_name).toLowerCase();
@@ -176,7 +288,8 @@
 
         const matchKeyword = !keyword || name.includes(keyword);
         const matchActive = !activeValue || (activeValue === 'active' ? isActive : !isActive);
-        return matchKeyword && matchActive;
+        const matchStore = !selectedStoreFilter || String(store.id) === String(selectedStoreFilter);
+        return matchKeyword && matchActive && matchStore;
       });
     }
 
@@ -282,6 +395,22 @@
       setLoading(true);
       const s = COLUMN_MAP.store;
 
+      const hierarchyPromise = supabaseClient
+        .from('au_employees')
+        .select('current_manager_id, current_team_leader_id, current_store_id');
+
+      const managersPromise = supabaseClient
+        .from('au_managers')
+        .select('id, manager_name')
+        .eq('is_active', true)
+        .order('manager_name', { ascending: true });
+
+      const teamLeadersPromise = supabaseClient
+        .from('au_team_leaders')
+        .select('id, team_leader_name')
+        .eq('is_active', true)
+        .order('team_leader_name', { ascending: true });
+
       const { data, error } = await supabaseClient
         .from('au_stores')
         .select(`${s.id}, ${s.name}, ${s.isActive}`)
@@ -292,7 +421,32 @@
         throw new Error(`매장 데이터를 불러오지 못했어. 상세 오류: ${error.message}`);
       }
 
+      const [{ data: hierarchyRows, error: hierarchyError }, { data: managersData, error: managersError }, { data: teamLeadersData, error: teamLeadersError }] = await Promise.all([hierarchyPromise, managersPromise, teamLeadersPromise]);
+
+      if (hierarchyError) {
+        console.error('au_employees 계층 조회 오류:', hierarchyError);
+        throw new Error(`계층 매핑 데이터를 불러오지 못했어. 상세 오류: ${hierarchyError.message}`);
+      }
+
+      if (managersError) {
+        console.error('au_managers 조회 오류:', managersError);
+        throw new Error(`담당 목록을 불러오지 못했어. 상세 오류: ${managersError.message}`);
+      }
+
+      if (teamLeadersError) {
+        console.error('au_team_leaders 조회 오류:', teamLeadersError);
+        throw new Error(`팀장 목록을 불러오지 못했어. 상세 오류: ${teamLeadersError.message}`);
+      }
+
       allStores = Array.isArray(data) ? data : [];
+      allManagers = Array.isArray(managersData) ? managersData : [];
+      allTeamLeaders = Array.isArray(teamLeadersData) ? teamLeadersData : [];
+
+      buildHierarchyMap(hierarchyRows || []);
+      refreshManagerFilter();
+      refreshTeamLeaderFilter();
+      refreshStoreFilter();
+
       renderStoreList();
     }
 
@@ -453,6 +607,9 @@
       resetBtn.addEventListener('click', () => {
         searchInput.value = '';
         activeFilter.value = '';
+        managerFilter.value = '';
+        refreshTeamLeaderFilter();
+        refreshStoreFilter();
         renderStoreList();
       });
 
@@ -461,6 +618,16 @@
         if (event.key === 'Enter') renderStoreList();
       });
       activeFilter.addEventListener('change', renderStoreList);
+      managerFilter.addEventListener('change', () => {
+        refreshTeamLeaderFilter();
+        refreshStoreFilter();
+        renderStoreList();
+      });
+      teamLeaderFilter.addEventListener('change', () => {
+        refreshStoreFilter();
+        renderStoreList();
+      });
+      storeFilter.addEventListener('change', renderStoreList);
 
       editorForm.addEventListener('submit', handleSave);
       cancelBtn.addEventListener('click', () => {
