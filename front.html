@@ -127,7 +127,24 @@
       justify-content: space-between;
       align-items: center;
       gap: 8px;
+    }
+    .staff-item.admin-action { cursor: pointer; }
+    .staff-item.admin-action:hover { background: #eef2ff; }
+    .staff-main {
+      display: flex;
+      gap: 8px;
+      align-items: center;
       flex-wrap: wrap;
+      min-width: 0;
+    }
+    .staff-name { font-size: 14px; font-weight: 700; color: #111827; }
+    .staff-position {
+      font-size: 12px;
+      color: #475467;
+      background: #f2f4f7;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
     }
     .leader-name { margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; }
     .leader-meta { display: flex; gap: 6px; flex-wrap: wrap; }
