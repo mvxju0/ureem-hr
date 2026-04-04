@@ -3,338 +3,199 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>사내 조직도</title>
+  <title>운영 대시보드</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-      background: #f5f7fb;
-      color: #111;
+      background: #f4f6fb;
+      color: #101828;
     }
-
     .wrap {
-      max-width: 1280px;
+      max-width: 1240px;
       margin: 0 auto;
-      padding: 24px 16px 40px;
+      padding: 20px 14px 110px;
     }
-
     .topbar {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       gap: 12px;
-      margin-bottom: 20px;
       flex-wrap: wrap;
+      margin-bottom: 14px;
     }
-
-    .title-area h1 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-    }
-
-    .title-area p {
-      margin: 6px 0 0;
-      color: #666;
-      font-size: 14px;
-    }
-
-    .top-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    button {
-      border: 0;
-      cursor: pointer;
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .btn-primary {
-      background: #111827;
-      color: #fff;
-    }
-
-    .btn-secondary {
-      background: #e5e7eb;
-      color: #111;
-    }
-
-    .btn-admin {
-      background: #e6007e;
-      color: #fff;
-      display: none;
-    }
+    .title-area h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.4px; }
+    .title-area p { margin: 6px 0 0; color: #667085; font-size: 13px; }
+    .top-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    button { border: 0; border-radius: 12px; padding: 11px 14px; font-size: 13px; font-weight: 700; cursor: pointer; min-height: 42px; }
+    .btn-primary { background: #111827; color: #fff; }
+    .btn-secondary { background: #e5e7eb; color: #111827; }
+    .btn-admin { background: #e6007e; color: #fff; display: none; }
 
     .panel {
       background: #fff;
+      border: 1px solid #eaecf0;
       border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-      margin-bottom: 16px;
+      box-shadow: 0 4px 18px rgba(16, 24, 40, 0.04);
+      margin-bottom: 12px;
+      padding: 14px;
     }
 
-    .filter-grid {
+    .dashboard-cards {
       display: grid;
-      grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr;
-      gap: 12px;
+      gap: 10px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
+    .metric-card { border: 1px solid #eaecf0; border-radius: 14px; padding: 12px; background: #fcfcfd; }
+    .metric-label { font-size: 12px; color: #667085; font-weight: 700; }
+    .metric-value { margin-top: 6px; font-size: 22px; font-weight: 800; color: #111827; }
 
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    .toolbar { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; align-items: end; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; color: #475467; font-weight: 700; }
+    .field input, .field select {
+      height: 42px; border-radius: 12px; border: 1px solid #d0d5dd;
+      padding: 0 11px; font-size: 14px; outline: none; background: #fff;
     }
-
-    .field label {
-      font-size: 13px;
-      color: #555;
-      font-weight: 700;
-    }
-
-    .field input,
-    .field select {
-      width: 100%;
-      height: 44px;
-      border: 1px solid #d1d5db;
-      border-radius: 12px;
-      padding: 0 12px;
-      font-size: 14px;
-      background: #fff;
-      outline: none;
-    }
-
-    .field input:focus,
-    .field select:focus {
-      border-color: #111827;
-    }
-
-    .filter-actions {
-      margin-top: 14px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+    .field input:focus, .field select:focus { border-color: #111827; }
 
     .summary {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .summary-left {
-      display: flex;
       gap: 10px;
       flex-wrap: wrap;
       align-items: center;
     }
-
+    .summary-left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .badge {
       display: inline-flex;
       align-items: center;
-      height: 32px;
-      padding: 0 12px;
+      height: 30px;
       border-radius: 999px;
       background: #eef2ff;
       color: #3730a3;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 0 11px;
+    }
+    .muted { color: #667085; font-size: 13px; }
+
+    .major-tab-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .major-tab-header h2 { margin: 0; font-size: 16px; font-weight: 800; }
+    .tab-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .tab-chip {
+      flex: 0 0 auto;
+      min-height: 40px;
+      border-radius: 999px;
+      border: 1px solid #d0d5dd;
+      background: #fff;
+      color: #344054;
+      padding: 0 14px;
       font-size: 13px;
       font-weight: 700;
-    }
-
-    .muted {
-      color: #666;
-      font-size: 14px;
-    }
-
-    .position-summary-title {
-      margin: 0 0 12px;
-      font-size: 15px;
-      font-weight: 800;
-      color: #111827;
-    }
-
-    .position-summary-grid {
-      display: grid;
-      gap: 10px;
-    }
-
-    .position-row {
-      display: grid;
-      gap: 10px;
-    }
-
-    .position-row.row-6 {
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-    }
-
-    .position-row.row-4 {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .position-item {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      min-height: 52px;
-      padding: 14px 12px;
-      border-radius: 14px;
-      background: #f8fafc;
-      border: 1px solid #e5e7eb;
-    }
-
-    .position-item .label {
-      font-size: 14px;
-      font-weight: 800;
-      color: #111827;
-    }
-
-    .position-item .value {
-      font-size: 15px;
-      font-weight: 800;
-      color: #e6007e;
-    }
-
-    .table-wrap {
-      background: #fff;
-      border-radius: 18px;
-      overflow: auto;
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-    }
-
-    .employee-table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1100px;
-    }
-
-    .employee-table thead th {
-      background: #111827;
-      color: #fff;
-      text-align: left;
-      font-size: 13px;
-      font-weight: 800;
-      padding: 14px 16px;
+      justify-content: center;
       white-space: nowrap;
     }
+    .tab-chip.active { background: #111827; border-color: #111827; color: #fff; }
+    .tab-chip:disabled { background: #f9fafb; color: #98a2b3; cursor: not-allowed; }
 
-    .employee-table tbody td {
-      border-bottom: 1px solid #edf0f5;
-      padding: 14px 16px;
-      font-size: 14px;
-      color: #111827;
-      vertical-align: middle;
-    }
-
-    .employee-table tbody tr:hover {
-      background: #f9fafb;
-    }
-
-    .employee-table tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    .employee-table tbody tr.admin-row {
-      cursor: pointer;
-    }
-
-    .employee-table tbody tr.admin-row:hover {
-      background: #eef2ff;
-    }
-
-    .cell-name {
-      font-weight: 700;
-    }
-
-    .cell-muted {
-      color: #6b7280;
-    }
-
-    .phone-wrap {
+    .leader-list { display: grid; gap: 12px; }
+    .leader-card { border: 1px solid #e4e7ec; background: #fff; border-radius: 16px; overflow: hidden; }
+    .leader-head {
+      background: linear-gradient(180deg, #f8f9fc 0%, #f5f7fb 100%);
+      border-bottom: 1px solid #eaecf0;
+      padding: 12px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
     }
+    .leader-name { margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; }
+    .leader-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+    .meta-pill {
+      height: 26px; border-radius: 999px; padding: 0 9px; font-size: 12px; font-weight: 700;
+      background: #eef2ff; color: #3730a3; display: inline-flex; align-items: center;
+    }
 
+    .store-list { padding: 12px; display: grid; gap: 10px; }
+    .store-block { border: 1px solid #eaecf0; border-radius: 12px; background: #fcfcfd; padding: 10px; }
+    .store-title { margin: 0 0 8px; font-size: 14px; font-weight: 800; color: #101828; }
+    .staff-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .staff-item {
+      border: 1px solid #eaecf0; border-radius: 10px; background: #fff;
+      padding: 8px 9px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      min-height: 42px;
+    }
+    .staff-item.admin-action { cursor: pointer; }
+    .staff-item.admin-action:hover { background: #eef2ff; }
+    .staff-main { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-width: 0; }
+    .staff-name { font-size: 14px; font-weight: 700; color: #111827; }
+    .staff-position { font-size: 12px; color: #475467; background: #f2f4f7; border-radius: 999px; padding: 2px 8px; font-weight: 700; }
     .call-btn {
-      display: inline-flex;
+      display: inline-flex; align-items: center; justify-content: center; min-height: 28px; border-radius: 999px;
+      padding: 0 10px; text-decoration: none; background: #e6007e; color: #fff; font-size: 12px; font-weight: 700; flex: 0 0 auto;
+    }
+
+    .loading, .empty, .error-box, .notice-box {
+      background: #fff; border: 1px solid #eaecf0; border-radius: 16px; padding: 22px 15px; text-align: center;
+      color: #667085; font-size: 14px; line-height: 1.6;
+    }
+    .notice-box {
+      text-align: left; background: #fffbeb; border-color: #fedf89; color: #7a2e0e; margin-bottom: 10px;
+    }
+    .hidden { display: none !important; }
+
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 50;
+      background: #fff;
+      border-top: 1px solid #e4e7ec;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+      gap: 6px;
+    }
+    .nav-item {
+      border-radius: 12px;
+      min-height: 52px;
+      text-decoration: none;
+      color: #667085;
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 30px;
-      padding: 0 10px;
-      border-radius: 999px;
-      background: #e6007e;
-      color: #fff;
-      text-decoration: none;
-      font-size: 12px;
+      gap: 3px;
+      font-size: 11px;
       font-weight: 700;
-      white-space: nowrap;
     }
+    .nav-item.active { background: #111827; color: #fff; }
+    .nav-item .icon { font-size: 16px; line-height: 1; }
 
-    .empty,
-    .loading,
-    .error-box {
-      background: #fff;
-      border-radius: 18px;
-      padding: 28px 20px;
-      text-align: center;
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-    }
-
-    .empty p,
-    .loading p,
-    .error-box p {
-      margin: 0;
-      color: #666;
-      line-height: 1.6;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    @media (max-width: 1024px) {
-      .filter-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .position-row.row-6 {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .position-row.row-4 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 640px) {
-      .wrap {
-        padding: 18px 12px 32px;
-      }
-
-      .filter-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .position-row.row-6,
-      .position-row.row-4 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .title-area h1 {
-        font-size: 24px;
-      }
+    @media (max-width: 960px) {
+      .dashboard-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .toolbar { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -342,118 +203,72 @@
   <div class="wrap">
     <div class="topbar">
       <div class="title-area">
-        <h1>사내 조직도</h1>
+        <h1>운영 대시보드</h1>
         <p id="welcomeText">사용자 정보를 확인 중...</p>
       </div>
 
       <div class="top-actions">
         <button type="button" class="btn-admin" id="approveBtn">가입승인</button>
-        <button type="button" class="btn-admin" id="storeEditBtn">매장편집</button>
+        <button type="button" class="btn-admin" id="storeEditBtn">매장관리</button>
         <button type="button" class="btn-secondary" id="refreshBtn">새로고침</button>
         <button type="button" class="btn-primary" id="logoutBtn">로그아웃</button>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="filter-grid">
-        <div class="field">
-          <label for="searchInput">이름 / 사번 검색</label>
-          <input type="text" id="searchInput" placeholder="이름 또는 사번 입력" />
-        </div>
+    <div class="panel dashboard-cards">
+      <article class="metric-card"><div class="metric-label">총 직원 수</div><div class="metric-value" id="metricEmployees">0</div></article>
+      <article class="metric-card"><div class="metric-label">조회 매장 수</div><div class="metric-value" id="metricStores">0</div></article>
+      <article class="metric-card"><div class="metric-label">팀장 수</div><div class="metric-value" id="metricLeaders">0</div></article>
+      <article class="metric-card"><div class="metric-label">현재 탭</div><div class="metric-value" id="metricTab">전체</div></article>
+    </div>
 
-        <div class="field">
-          <label for="storeFilter">매장</label>
-          <select id="storeFilter">
-            <option value="">전체</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="managerFilter">담당</label>
-          <select id="managerFilter">
-            <option value="">전체</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="teamLeaderFilter">팀장</label>
-          <select id="teamLeaderFilter">
-            <option value="">전체</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="positionFilter">직급</label>
-          <select id="positionFilter">
-            <option value="">전체</option>
-          </select>
-        </div>
+    <div class="panel toolbar">
+      <div class="field">
+        <label for="searchInput">이름 / 사번 검색</label>
+        <input id="searchInput" type="text" placeholder="이름 또는 사번 입력" />
       </div>
-
-      <div class="filter-actions">
-        <button type="button" class="btn-primary" id="searchBtn">검색</button>
-        <button type="button" class="btn-secondary" id="resetBtn">초기화</button>
+      <div class="field">
+        <label for="positionFilter">직급</label>
+        <select id="positionFilter"><option value="">전체</option></select>
       </div>
     </div>
 
     <div class="panel summary">
       <div class="summary-left">
         <span class="badge" id="countBadge">총 0명</span>
+        <span class="badge" id="leaderBadge">팀장 0명</span>
         <span class="muted" id="roleText">권한 확인 중...</span>
       </div>
-      <div class="muted" id="statusText">조직도 데이터를 불러오는 중...</div>
+      <span class="muted" id="statusText">조직도 데이터를 불러오는 중...</span>
     </div>
 
     <div class="panel">
-      <h2 class="position-summary-title">직급별 인원 현황</h2>
-
-      <div class="position-summary-grid" id="positionSummaryGrid">
-        <div class="position-row row-6">
-          <div class="position-item" data-position="담당"><span class="label">담당</span><span class="value">-</span></div>
-          <div class="position-item" data-position="팀장"><span class="label">팀장</span><span class="value">-</span></div>
-          <div class="position-item" data-position="점장"><span class="label">점장</span><span class="value">-</span></div>
-          <div class="position-item" data-position="SP2"><span class="label">SP2</span><span class="value">-</span></div>
-          <div class="position-item" data-position="SP1.5"><span class="label">SP1.5</span><span class="value">-</span></div>
-          <div class="position-item" data-position="SP1"><span class="label">SP1</span><span class="value">-</span></div>
-        </div>
-
-        <div class="position-row row-4">
-          <div class="position-item" data-position="책임"><span class="label">책임</span><span class="value">-</span></div>
-          <div class="position-item" data-position="선임"><span class="label">선임</span><span class="value">-</span></div>
-          <div class="position-item" data-position="사원"><span class="label">사원</span><span class="value">-</span></div>
-          <div class="position-item" data-position="CSM"><span class="label">CSM</span><span class="value">-</span></div>
-        </div>
+      <div class="major-tab-header">
+        <h2>조직도</h2>
+        <span class="muted" id="majorGuideText">대분류 탭으로 팀별 구조를 빠르게 전환할 수 있어.</span>
       </div>
+      <div class="tab-scroll" id="majorTabList"></div>
     </div>
 
-    <div id="loadingBox" class="loading">
-      <p>데이터를 불러오는 중이야.</p>
+    <div id="majorMissingNotice" class="notice-box hidden">
+      현재 `au_employee_directory_view`에는 대분류 필터링에 필요한 컬럼이 없어, “전체” 탭만 정확한 결과를 표시한다.<br />
+      프론트에서 컬럼을 추측해 매핑하지 않도록 고정 처리했다.
     </div>
 
-    <div id="errorBox" class="error-box hidden">
-      <p id="errorMessage">오류가 발생했어.</p>
-    </div>
+    <div id="loadingBox" class="loading">데이터를 불러오는 중이야.</div>
+    <div id="errorBox" class="error-box hidden"><span id="errorMessage">오류가 발생했어.</span></div>
+    <div id="emptyBox" class="empty hidden">조건에 맞는 직원 정보가 없다.</div>
 
-    <div id="emptyBox" class="empty hidden">
-      <p>조건에 맞는 직원 정보가 없다.</p>
-    </div>
-
-    <div id="tableWrap" class="table-wrap hidden">
-      <table class="employee-table">
-        <thead>
-          <tr>
-            <th>담당</th>
-            <th>팀장</th>
-            <th>매장</th>
-            <th>직원명</th>
-            <th>직급</th>
-            <th>연락처</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
+    <div id="leaderList" class="leader-list hidden"></div>
   </div>
+
+  <nav class="bottom-nav" aria-label="하단 네비게이션">
+    <a class="nav-item active" href="front.html"><span class="icon">🏠</span><span>대시보드</span></a>
+    <a class="nav-item" href="employees.html"><span class="icon">👥</span><span>직원</span></a>
+    <a class="nav-item" href="store-edit.html"><span class="icon">🏬</span><span>매장</span></a>
+    <a class="nav-item" href="attendance.html"><span class="icon">🕒</span><span>근태</span></a>
+    <a class="nav-item" href="payroll.html"><span class="icon">💳</span><span>급여</span></a>
+  </nav>
 
   <script>
     const SUPABASE_URL = 'https://ytnxmnbctujuopbqpurl.supabase.co';
@@ -462,318 +277,333 @@
 
     const COLUMN_MAP = {
       directory: {
-        employeeNo: "employee_no",
-        employeeName: "name",
-        storeName: "store_name",
-        managerName: "manager_name",
-        teamLeaderName: "team_leader_name",
-        positionName: "position_name",
-        publicPhone: "public_phone",
-        phone: "phone"
+        employeeNo: 'employee_no',
+        employeeName: 'name',
+        storeName: 'store_name',
+        managerName: 'manager_name',
+        teamLeaderName: 'team_leader_name',
+        positionName: 'position_name',
+        publicPhone: 'public_phone',
+        phone: 'phone'
       },
       account: {
-        employeeNo: "employee_no",
-        authUserId: "auth_user_id",
-        signupApproved: "signup_approved",
-        accountStatus: "account_status"
+        employeeNo: 'employee_no',
+        authUserId: 'auth_user_id',
+        signupApproved: 'signup_approved',
+        accountStatus: 'account_status'
       },
       employee: {
-        employeeNo: "employee_no",
-        systemRoleId: "system_role_id"
+        employeeNo: 'employee_no',
+        systemRoleId: 'system_role_id'
       },
       role: {
-        id: "id",
-        roleName: "role_name"
+        id: 'id',
+        roleName: 'role_name'
       }
     };
 
-    const approveBtn = document.getElementById("approveBtn");
-    const storeEditBtn = document.getElementById("storeEditBtn");
-    const welcomeText = document.getElementById("welcomeText");
-    const refreshBtn = document.getElementById("refreshBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
+    const MAJOR_GROUPS = ['전체', '청주', '충북', '대전', '충남', '부산', '소사장'];
+    const MAJOR_CATEGORY_FIELD = null;
 
-    const searchInput = document.getElementById("searchInput");
-    const storeFilter = document.getElementById("storeFilter");
-    const managerFilter = document.getElementById("managerFilter");
-    const teamLeaderFilter = document.getElementById("teamLeaderFilter");
-    const positionFilter = document.getElementById("positionFilter");
-    const searchBtn = document.getElementById("searchBtn");
-    const resetBtn = document.getElementById("resetBtn");
+    const approveBtn = document.getElementById('approveBtn');
+    const storeEditBtn = document.getElementById('storeEditBtn');
+    const welcomeText = document.getElementById('welcomeText');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const searchInput = document.getElementById('searchInput');
+    const positionFilter = document.getElementById('positionFilter');
+    const countBadge = document.getElementById('countBadge');
+    const leaderBadge = document.getElementById('leaderBadge');
+    const roleText = document.getElementById('roleText');
+    const statusText = document.getElementById('statusText');
+    const metricEmployees = document.getElementById('metricEmployees');
+    const metricStores = document.getElementById('metricStores');
+    const metricLeaders = document.getElementById('metricLeaders');
+    const metricTab = document.getElementById('metricTab');
 
-    const countBadge = document.getElementById("countBadge");
-    const roleText = document.getElementById("roleText");
-    const statusText = document.getElementById("statusText");
+    const majorTabList = document.getElementById('majorTabList');
+    const majorGuideText = document.getElementById('majorGuideText');
+    const majorMissingNotice = document.getElementById('majorMissingNotice');
 
-    const loadingBox = document.getElementById("loadingBox");
-    const errorBox = document.getElementById("errorBox");
-    const errorMessage = document.getElementById("errorMessage");
-    const emptyBox = document.getElementById("emptyBox");
-    const tableWrap = document.getElementById("tableWrap");
-    const tableBody = document.getElementById("tableBody");
-    const positionSummaryGrid = document.getElementById("positionSummaryGrid");
+    const loadingBox = document.getElementById('loadingBox');
+    const errorBox = document.getElementById('errorBox');
+    const errorMessage = document.getElementById('errorMessage');
+    const emptyBox = document.getElementById('emptyBox');
+    const leaderList = document.getElementById('leaderList');
 
     let allRows = [];
-    let filteredRows = [];
     let currentUser = null;
-    let currentRole = "viewer";
-
-    function setLoading(isLoading) {
-      loadingBox.classList.toggle("hidden", !isLoading);
-      if (isLoading) {
-        errorBox.classList.add("hidden");
-        emptyBox.classList.add("hidden");
-        tableWrap.classList.add("hidden");
-      }
-    }
-
-    function showError(message) {
-      loadingBox.classList.add("hidden");
-      tableWrap.classList.add("hidden");
-      emptyBox.classList.add("hidden");
-      errorBox.classList.remove("hidden");
-      errorMessage.textContent = message;
-      statusText.textContent = "오류 발생";
-    }
+    let currentRole = 'viewer';
+    let selectedMajorGroup = '전체';
 
     function escapeHtml(value) {
-      return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+      return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
     }
 
-    function uniqueSortedValues(rows, key) {
-      const values = rows
-        .map(row => row[key])
-        .filter(v => v !== null && v !== undefined && String(v).trim() !== "")
-        .map(v => String(v).trim());
+    function normalizeText(value) { return String(value ?? '').trim(); }
+    function normalizeAccountStatus(status) { return String(status || '').toLowerCase().trim(); }
 
-      return [...new Set(values)].sort((a, b) => a.localeCompare(b, "ko"));
+    function uniqueSortedValues(rows, key) {
+      const values = rows.map((row) => row[key]).filter((v) => normalizeText(v) !== '').map((v) => normalizeText(v));
+      return [...new Set(values)].sort((a, b) => a.localeCompare(b, 'ko'));
     }
 
     function fillSelect(selectEl, values) {
-      const current = selectEl.value;
-      selectEl.innerHTML = `<option value="">전체</option>`;
-      values.forEach(value => {
-        const option = document.createElement("option");
+      const oldValue = selectEl.value;
+      selectEl.innerHTML = '<option value="">전체</option>';
+      values.forEach((value) => {
+        const option = document.createElement('option');
         option.value = value;
         option.textContent = value;
         selectEl.appendChild(option);
       });
-      selectEl.value = values.includes(current) ? current : "";
+      selectEl.value = values.includes(oldValue) ? oldValue : '';
     }
 
-    function normalizeAccountStatus(status) {
-      return String(status || "").toLowerCase().trim();
+    function setLoading(isLoading) {
+      loadingBox.classList.toggle('hidden', !isLoading);
+      if (isLoading) {
+        leaderList.classList.add('hidden');
+        emptyBox.classList.add('hidden');
+        errorBox.classList.add('hidden');
+      }
+    }
+
+    function showError(message) {
+      loadingBox.classList.add('hidden');
+      leaderList.classList.add('hidden');
+      emptyBox.classList.add('hidden');
+      errorBox.classList.remove('hidden');
+      errorMessage.textContent = message;
+      statusText.textContent = '오류 발생';
+    }
+
+    function buildPhoneButton(phoneValue) {
+      const phoneText = normalizeText(phoneValue);
+      if (!phoneText) return '';
+      const phoneHref = phoneText.replace(/[^0-9+]/g, '');
+      if (!phoneHref) return '';
+      return `<a href="tel:${escapeHtml(phoneHref)}" class="call-btn" onclick="event.stopPropagation();">통화</a>`;
+    }
+
+    function canUseMajorFilter() {
+      return typeof MAJOR_CATEGORY_FIELD === 'string' && MAJOR_CATEGORY_FIELD.length > 0;
+    }
+
+    function renderMajorTabs() {
+      majorTabList.innerHTML = '';
+      const majorFilterEnabled = canUseMajorFilter();
+      MAJOR_GROUPS.forEach((groupName) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `tab-chip${groupName === selectedMajorGroup ? ' active' : ''}`;
+        button.textContent = groupName;
+
+        const disabled = !majorFilterEnabled && groupName !== '전체';
+        button.disabled = disabled;
+        button.addEventListener('click', () => {
+          selectedMajorGroup = groupName;
+          renderMajorTabs();
+          renderDirectory();
+        });
+        majorTabList.appendChild(button);
+      });
+
+      majorMissingNotice.classList.toggle('hidden', majorFilterEnabled);
+      majorGuideText.textContent = majorFilterEnabled
+        ? '대분류 탭을 누르면 팀장 카드/매장/직원 목록이 즉시 갱신돼.'
+        : '대분류 컬럼이 view에 추가되면 지역 탭 필터가 활성화돼.';
+    }
+
+    function filterRows() {
+      const c = COLUMN_MAP.directory;
+      const keyword = normalizeText(searchInput.value).toLowerCase();
+      const selectedPosition = positionFilter.value;
+
+      return allRows.filter((row) => {
+        const employeeNo = normalizeText(row[c.employeeNo]).toLowerCase();
+        const employeeName = normalizeText(row[c.employeeName]).toLowerCase();
+        const positionName = normalizeText(row[c.positionName]);
+
+        const matchKeyword = !keyword || employeeNo.includes(keyword) || employeeName.includes(keyword);
+        const matchPosition = !selectedPosition || positionName === selectedPosition;
+
+        let matchMajor = true;
+        if (selectedMajorGroup !== '전체') {
+          if (canUseMajorFilter()) {
+            const majorValue = normalizeText(row[MAJOR_CATEGORY_FIELD]);
+            matchMajor = majorValue === selectedMajorGroup;
+          } else {
+            matchMajor = false;
+          }
+        }
+        return matchKeyword && matchPosition && matchMajor;
+      });
+    }
+
+    function sortRows(rows) {
+      const c = COLUMN_MAP.directory;
+      return [...rows].sort((a, b) => {
+        const leaderCompare = normalizeText(a[c.teamLeaderName]).localeCompare(normalizeText(b[c.teamLeaderName]), 'ko');
+        if (leaderCompare !== 0) return leaderCompare;
+        const storeCompare = normalizeText(a[c.storeName]).localeCompare(normalizeText(b[c.storeName]), 'ko');
+        if (storeCompare !== 0) return storeCompare;
+        return normalizeText(a[c.employeeName]).localeCompare(normalizeText(b[c.employeeName]), 'ko');
+      });
+    }
+
+    function groupByLeaderAndStore(rows) {
+      const c = COLUMN_MAP.directory;
+      const leaderMap = new Map();
+
+      rows.forEach((row) => {
+        const leaderName = normalizeText(row[c.teamLeaderName]) || '팀장 미지정';
+        const storeName = normalizeText(row[c.storeName]) || '매장 미지정';
+
+        if (!leaderMap.has(leaderName)) {
+          leaderMap.set(leaderName, { leaderName, stores: new Map(), staffCount: 0 });
+        }
+        const leader = leaderMap.get(leaderName);
+
+        if (!leader.stores.has(storeName)) {
+          leader.stores.set(storeName, { storeName, staff: [] });
+        }
+
+        leader.stores.get(storeName).staff.push(row);
+        leader.staffCount += 1;
+      });
+
+      return [...leaderMap.values()]
+        .sort((a, b) => a.leaderName.localeCompare(b.leaderName, 'ko'))
+        .map((leader) => {
+          const stores = [...leader.stores.values()]
+            .sort((a, b) => a.storeName.localeCompare(b.storeName, 'ko'))
+            .map((store) => ({
+              ...store,
+              staff: store.staff.sort((a, b) => normalizeText(a[c.employeeName]).localeCompare(normalizeText(b[c.employeeName]), 'ko'))
+            }));
+
+          return {
+            leaderName: leader.leaderName,
+            storeCount: stores.length,
+            staffCount: leader.staffCount,
+            stores
+          };
+        });
     }
 
     function goEdit(employeeNo) {
-      if (currentRole !== "admin") return;
+      if (currentRole !== 'admin') return;
       location.href = `edit.html?employee_no=${encodeURIComponent(employeeNo)}`;
     }
 
-    function buildPhoneCell(phoneValue) {
-      const phoneText = String(phoneValue ?? "").trim();
+    function buildStaffItem(row) {
+      const c = COLUMN_MAP.directory;
+      const employeeNo = normalizeText(row[c.employeeNo]);
+      const employeeName = normalizeText(row[c.employeeName]) || '-';
+      const positionName = normalizeText(row[c.positionName]) || '직급 미지정';
+      const phoneValue = row[c.publicPhone] ?? row[c.phone] ?? '';
 
-      if (!phoneText) {
-        return '<span>-</span>';
-      }
-
-      const phoneHref = phoneText.replace(/[^0-9+]/g, '');
-
-      if (!phoneHref) {
-        return `<span>${escapeHtml(phoneText)}</span>`;
-      }
+      const adminClass = currentRole === 'admin' ? 'admin-action' : '';
+      const adminClick = currentRole === 'admin' ? `onclick="goEdit('${String(employeeNo).replaceAll("'", "\\'")}')"` : '';
 
       return `
-        <div class="phone-wrap">
-          <span>${escapeHtml(phoneText)}</span>
-          <a
-            href="tel:${escapeHtml(phoneHref)}"
-            class="call-btn"
-            onclick="event.stopPropagation();"
-          >통화</a>
-        </div>
+        <li class="staff-item ${adminClass}" ${adminClick}>
+          <div class="staff-main">
+            <span class="staff-name">${escapeHtml(employeeName)}</span>
+            <span class="staff-position">${escapeHtml(positionName)}</span>
+          </div>
+          ${buildPhoneButton(phoneValue)}
+        </li>
       `;
     }
 
-    function buildTableRow(row) {
-      const c = COLUMN_MAP.directory;
-
-      const employeeNo = row[c.employeeNo] ?? "";
-      const employeeName = row[c.employeeName] ?? "-";
-      const storeName = row[c.storeName] ?? "-";
-      const managerName = row[c.managerName] ?? "-";
-      const teamLeaderName = row[c.teamLeaderName] ?? "-";
-      const positionName = row[c.positionName] ?? "-";
-      const phoneValue = row[c.publicPhone] ?? row[c.phone] ?? "";
-
-      const trClass = currentRole === "admin" ? "admin-row" : "";
-      const trClick = currentRole === "admin"
-        ? `onclick="goEdit('${String(employeeNo).replaceAll("'", "\\'")}')"`
-        : "";
+    function buildLeaderCard(leaderGroup) {
+      const storeHtml = leaderGroup.stores.map((store) => `
+        <section class="store-block">
+          <h4 class="store-title">${escapeHtml(store.storeName)}</h4>
+          <ul class="staff-list">${store.staff.map(buildStaffItem).join('')}</ul>
+        </section>
+      `).join('');
 
       return `
-        <tr class="${trClass}" ${trClick}>
-          <td>${escapeHtml(managerName)}</td>
-          <td>${escapeHtml(teamLeaderName)}</td>
-          <td>${escapeHtml(storeName)}</td>
-          <td class="cell-name">${escapeHtml(employeeName)}</td>
-          <td>${escapeHtml(positionName)}</td>
-          <td class="cell-muted">${buildPhoneCell(phoneValue)}</td>
-        </tr>
+        <article class="leader-card">
+          <div class="leader-head">
+            <h3 class="leader-name">${escapeHtml(leaderGroup.leaderName)}</h3>
+            <div class="leader-meta">
+              <span class="meta-pill">매장 ${leaderGroup.storeCount}개</span>
+              <span class="meta-pill">직원 ${leaderGroup.staffCount}명</span>
+            </div>
+          </div>
+          <div class="store-list">${storeHtml}</div>
+        </article>
       `;
     }
 
-    function renderPositionSummary(rows) {
+    function updateDashboardMetrics(filteredRows, leaderGroups) {
       const c = COLUMN_MAP.directory;
-      const counts = {};
-
-      rows.forEach(row => {
-        const position = String(row[c.positionName] ?? "").trim();
-        if (!position) return;
-        counts[position] = (counts[position] || 0) + 1;
-      });
-
-      const items = positionSummaryGrid.querySelectorAll(".position-item");
-
-      items.forEach(item => {
-        const positionKey = item.dataset.position;
-        const valueEl = item.querySelector(".value");
-        const count = counts[positionKey] || 0;
-        valueEl.textContent = count > 0 ? String(count) : "-";
-      });
+      const storeSet = new Set(filteredRows.map((row) => normalizeText(row[c.storeName])).filter(Boolean));
+      metricEmployees.textContent = String(filteredRows.length);
+      metricStores.textContent = String(storeSet.size);
+      metricLeaders.textContent = String(leaderGroups.length);
+      metricTab.textContent = selectedMajorGroup;
     }
 
-    function renderList(rows) {
-      loadingBox.classList.add("hidden");
-      errorBox.classList.add("hidden");
+    function renderDirectory() {
+      const filteredRows = sortRows(filterRows());
+      const leaderGroups = groupByLeaderAndStore(filteredRows);
 
-      countBadge.textContent = `총 ${rows.length}명`;
-      renderPositionSummary(rows);
+      loadingBox.classList.add('hidden');
+      errorBox.classList.add('hidden');
+      countBadge.textContent = `총 ${filteredRows.length}명`;
+      leaderBadge.textContent = `팀장 ${leaderGroups.length}명`;
+      updateDashboardMetrics(filteredRows, leaderGroups);
 
-      if (!rows.length) {
-        tableWrap.classList.add("hidden");
-        emptyBox.classList.remove("hidden");
-        statusText.textContent = "검색 결과 없음";
-        tableBody.innerHTML = "";
+      if (!filteredRows.length) {
+        leaderList.classList.add('hidden');
+        emptyBox.classList.remove('hidden');
+        statusText.textContent = '검색 결과 없음';
+        leaderList.innerHTML = '';
         return;
       }
 
-      emptyBox.classList.add("hidden");
-      tableWrap.classList.remove("hidden");
-      tableBody.innerHTML = rows.map(buildTableRow).join("");
-      statusText.textContent = currentRole === "admin" ? "조회 완료 · 직원 클릭 시 수정 가능" : "조회 완료";
-    }
-
-    function applyFilters() {
-      const c = COLUMN_MAP.directory;
-
-      const keyword = searchInput.value.trim().toLowerCase();
-      const store = storeFilter.value;
-      const manager = managerFilter.value;
-      const teamLeader = teamLeaderFilter.value;
-      const position = positionFilter.value;
-
-      filteredRows = allRows.filter(row => {
-        const employeeName = String(row[c.employeeName] ?? "").toLowerCase();
-        const employeeNo = String(row[c.employeeNo] ?? "").toLowerCase();
-        const storeName = String(row[c.storeName] ?? "");
-        const managerName = String(row[c.managerName] ?? "");
-        const teamLeaderName = String(row[c.teamLeaderName] ?? "");
-        const positionName = String(row[c.positionName] ?? "");
-
-        const matchKeyword =
-          !keyword ||
-          employeeName.includes(keyword) ||
-          employeeNo.includes(keyword);
-
-        const matchStore = !store || storeName === store;
-        const matchManager = !manager || managerName === manager;
-        const matchTeamLeader = !teamLeader || teamLeaderName === teamLeader;
-        const matchPosition = !position || positionName === position;
-
-        return matchKeyword && matchStore && matchManager && matchTeamLeader && matchPosition;
-      });
-
-      renderList(filteredRows);
-    }
-
-    function resetFilters() {
-      searchInput.value = "";
-      storeFilter.value = "";
-      managerFilter.value = "";
-      teamLeaderFilter.value = "";
-      positionFilter.value = "";
-      filteredRows = [...allRows];
-      renderList(filteredRows);
-    }
-
-    function setupFilterOptions(rows) {
-      const c = COLUMN_MAP.directory;
-
-      fillSelect(storeFilter, uniqueSortedValues(rows, c.storeName));
-      fillSelect(managerFilter, uniqueSortedValues(rows, c.managerName));
-      fillSelect(teamLeaderFilter, uniqueSortedValues(rows, c.teamLeaderName));
-      fillSelect(positionFilter, uniqueSortedValues(rows, c.positionName));
+      emptyBox.classList.add('hidden');
+      leaderList.classList.remove('hidden');
+      leaderList.innerHTML = leaderGroups.map(buildLeaderCard).join('');
+      statusText.textContent = currentRole === 'admin' ? '조회 완료 · 직원 클릭 시 수정 페이지로 이동 가능' : '조회 완료';
     }
 
     async function ensureLoggedIn() {
       const { data, error } = await supabaseClient.auth.getUser();
-
       if (error || !data?.user) {
-        location.href = "index.html";
+        location.href = 'index.html';
         return null;
       }
-
       currentUser = data.user;
       return data.user;
     }
 
     async function getMyAccount() {
       const a = COLUMN_MAP.account;
-
       const { data, error } = await supabaseClient
-        .from("au_employee_accounts")
-        .select(`
-          ${a.employeeNo},
-          ${a.authUserId},
-          ${a.signupApproved},
-          ${a.accountStatus}
-        `)
+        .from('au_employee_accounts')
+        .select(`${a.employeeNo}, ${a.authUserId}, ${a.signupApproved}, ${a.accountStatus}`)
         .eq(a.authUserId, currentUser.id)
         .maybeSingle();
 
       if (error) {
-        console.error("au_employee_accounts 조회 오류:", error);
+        console.error('au_employee_accounts 조회 오류:', error);
         throw new Error(`내 계정 정보를 불러오지 못했어. 상세 오류: ${error.message}`);
       }
-
-      if (!data) {
-        throw new Error("로그인된 계정의 직원 연결 정보가 없어.");
-      }
-
+      if (!data) throw new Error('로그인된 계정의 직원 연결 정보가 없어.');
       return data;
     }
 
     function validateAccount(account) {
-      const approved = account.signup_approved;
+      if (!account.signup_approved) throw new Error('아직 승인되지 않은 계정이야.');
       const status = normalizeAccountStatus(account.account_status);
-
-      if (!approved) {
-        throw new Error("아직 승인되지 않은 계정이야.");
-      }
-
-      if (status === "disabled") {
-        throw new Error("비활성화된 계정이야.");
-      }
-
-      if (status === "locked") {
-        throw new Error("잠긴 계정이야.");
-      }
+      if (status === 'disabled') throw new Error('비활성화된 계정이야.');
+      if (status === 'locked') throw new Error('잠긴 계정이야.');
     }
 
     async function getMyEmployeeRole(employeeNo) {
@@ -781,147 +611,113 @@
       const r = COLUMN_MAP.role;
 
       const { data: employeeData, error: employeeError } = await supabaseClient
-        .from("au_employees")
-        .select(`
-          ${e.employeeNo},
-          ${e.systemRoleId}
-        `)
+        .from('au_employees')
+        .select(`${e.employeeNo}, ${e.systemRoleId}`)
         .eq(e.employeeNo, employeeNo)
         .maybeSingle();
 
       if (employeeError) {
-        console.error("au_employees 조회 오류:", employeeError);
+        console.error('au_employees 조회 오류:', employeeError);
         throw new Error(`직원 정보를 불러오지 못했어. 상세 오류: ${employeeError.message}`);
       }
 
-      if (!employeeData || !employeeData[e.systemRoleId]) {
-        return "viewer";
-      }
+      if (!employeeData || !employeeData[e.systemRoleId]) return 'viewer';
 
       const { data: roleData, error: roleError } = await supabaseClient
-        .from("au_system_roles")
-        .select(`
-          ${r.id},
-          ${r.roleName}
-        `)
+        .from('au_system_roles')
+        .select(`${r.id}, ${r.roleName}`)
         .eq(r.id, employeeData[e.systemRoleId])
         .maybeSingle();
 
       if (roleError) {
-        console.error("au_system_roles 조회 오류:", roleError);
+        console.error('au_system_roles 조회 오류:', roleError);
         throw new Error(`권한 정보를 불러오지 못했어. 상세 오류: ${roleError.message}`);
       }
 
-      return String(roleData?.[r.roleName] || "viewer").toLowerCase();
+      return String(roleData?.[r.roleName] || 'viewer').toLowerCase();
     }
 
     async function loadDirectory() {
       setLoading(true);
-
       const c = COLUMN_MAP.directory;
 
       const { data, error } = await supabaseClient
-        .from("au_employee_directory_view")
-        .select(`
-          ${c.employeeNo},
-          ${c.employeeName},
-          ${c.storeName},
-          ${c.managerName},
-          ${c.teamLeaderName},
-          ${c.positionName},
-          ${c.publicPhone}
-        `)
+        .from('au_employee_directory_view')
+        .select(`${c.employeeNo}, ${c.employeeName}, ${c.storeName}, ${c.managerName}, ${c.teamLeaderName}, ${c.positionName}, ${c.publicPhone}`)
+        .order(c.teamLeaderName, { ascending: true })
+        .order(c.storeName, { ascending: true })
         .order(c.employeeName, { ascending: true });
 
       if (error) {
-        console.error("au_employee_directory_view 조회 오류:", error);
+        console.error('au_employee_directory_view 조회 오류:', error);
         throw new Error(`조직도 데이터를 불러오지 못했어. 상세 오류: ${error.message}`);
       }
 
       allRows = Array.isArray(data) ? data : [];
-      setupFilterOptions(allRows);
-      filteredRows = [...allRows];
-      renderList(filteredRows);
+      fillSelect(positionFilter, uniqueSortedValues(allRows, c.positionName));
+      renderMajorTabs();
+      renderDirectory();
     }
 
-    approveBtn.addEventListener("click", () => {
-      location.href = "auth-requests.html";
-    });
-
-    storeEditBtn.addEventListener("click", () => {
-      location.href = "store-edit.html";
-    });
-
-    searchBtn.addEventListener("click", applyFilters);
-    resetBtn.addEventListener("click", resetFilters);
-
-    refreshBtn.addEventListener("click", async () => {
+    approveBtn.addEventListener('click', () => { location.href = 'auth-requests.html'; });
+    storeEditBtn.addEventListener('click', () => { location.href = 'store-edit.html'; });
+    refreshBtn.addEventListener('click', async () => {
       try {
-        statusText.textContent = "새로고침 중...";
+        statusText.textContent = '새로고침 중...';
         await loadDirectory();
       } catch (err) {
         console.error(err);
-        showError(err.message || "새로고침 중 오류가 발생했어.");
+        showError(err.message || '새로고침 중 오류가 발생했어.');
       }
     });
 
-    logoutBtn.addEventListener("click", async () => {
+    logoutBtn.addEventListener('click', async () => {
       try {
         const { error } = await supabaseClient.auth.signOut();
-
         if (error) {
-          console.error("로그아웃 오류:", error);
+          console.error('로그아웃 오류:', error);
           alert(`로그아웃 실패: ${error.message}`);
           return;
         }
-
-        location.replace("index.html");
+        location.replace('index.html');
       } catch (err) {
-        console.error("로그아웃 처리 예외:", err);
-        alert(err.message || "로그아웃 중 오류가 발생했어.");
+        console.error('로그아웃 처리 예외:', err);
+        alert(err.message || '로그아웃 중 오류가 발생했어.');
       }
     });
 
-    searchInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") applyFilters();
-    });
-
-    storeFilter.addEventListener("change", applyFilters);
-    managerFilter.addEventListener("change", applyFilters);
-    teamLeaderFilter.addEventListener("change", applyFilters);
-    positionFilter.addEventListener("change", applyFilters);
+    searchInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') renderDirectory(); });
+    searchInput.addEventListener('input', renderDirectory);
+    positionFilter.addEventListener('change', renderDirectory);
 
     supabaseClient.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") {
-        location.replace("index.html");
-      }
+      if (event === 'SIGNED_OUT') location.replace('index.html');
     });
 
     async function init() {
       try {
-        statusText.textContent = "로그인 상태 확인 중...";
+        statusText.textContent = '로그인 상태 확인 중...';
         await ensureLoggedIn();
 
-        statusText.textContent = "조직도 조회 중...";
+        statusText.textContent = '조직도 조회 중...';
         await loadDirectory();
 
         const myAccount = await getMyAccount();
         validateAccount(myAccount);
 
         currentRole = await getMyEmployeeRole(myAccount.employee_no);
-
         welcomeText.textContent = `${myAccount.employee_no} 로그인됨`;
         roleText.textContent = `권한: ${currentRole}`;
 
-        if (currentRole === "admin") {
-          approveBtn.style.display = "inline-flex";
-          storeEditBtn.style.display = "inline-flex";
+        if (currentRole === 'admin') {
+          approveBtn.style.display = 'inline-flex';
+          storeEditBtn.style.display = 'inline-flex';
         }
 
-        renderList(filteredRows);
+        renderDirectory();
       } catch (err) {
         console.error(err);
-        showError(err.message || "초기 로딩 중 오류가 발생했어.");
+        showError(err.message || '초기 로딩 중 오류가 발생했어.');
       }
     }
 
