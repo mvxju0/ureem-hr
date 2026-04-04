@@ -60,6 +60,9 @@
       </div>
     </div>
 
+    <div id="blockedBox" class="panel hidden" style="text-align:center; color:#666;">관리자 전용 페이지야.</div>
+
+    <div id="appRoot">
     <div class="panel toolbar">
       <div class="field">
         <label for="searchInput">이름 / 사번 검색</label>
@@ -84,12 +87,13 @@
     <div id="errorBox" class="error-box hidden"><span id="errorMessage">오류가 발생했어.</span></div>
     <div id="emptyBox" class="empty hidden">조건에 맞는 직원이 없어.</div>
     <div id="employeeList" class="employee-list hidden"></div>
+    </div>
   </div>
 
   <nav class="bottom-nav" aria-label="하단 네비게이션">
     <a class="nav-item" href="front.html"><span class="icon">🏠</span><span>대시보드</span></a>
-    <a class="nav-item active" href="employees.html"><span class="icon">👥</span><span>직원</span></a>
-    <a class="nav-item" href="store-edit.html"><span class="icon">🏬</span><span>매장</span></a>
+    <a class="nav-item active hidden" data-admin-only="true" href="employees.html"><span class="icon">👥</span><span>직원</span></a>
+    <a class="nav-item hidden" data-admin-only="true" href="store-edit.html"><span class="icon">🏬</span><span>매장</span></a>
     <a class="nav-item" href="attendance.html"><span class="icon">🕒</span><span>근태</span></a>
     <a class="nav-item" href="payroll.html"><span class="icon">💳</span><span>급여</span></a>
   </nav>
@@ -120,6 +124,8 @@
     const errorMessage = document.getElementById('errorMessage');
     const emptyBox = document.getElementById('emptyBox');
     const employeeList = document.getElementById('employeeList');
+    const blockedBox = document.getElementById('blockedBox');
+    const appRoot = document.getElementById('appRoot');
 
     let allRows = [];
     let currentUser = null;
@@ -128,6 +134,9 @@
     function normalizeText(value) { return String(value ?? '').trim(); }
     function escapeHtml(value) { return String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;'); }
     function normalizeAccountStatus(status) { return String(status || '').toLowerCase().trim(); }
+    function setAdminNavVisibility(roleName) {
+      document.querySelectorAll('[data-admin-only="true"]').forEach((el)=>el.classList.toggle('hidden', roleName !== 'admin'));
+    }
 
     function showError(message) {
       loadingBox.classList.add('hidden');
@@ -328,6 +337,15 @@
         const account = await getMyAccount();
         validateAccount(account);
         currentRole = await getMyEmployeeRole(account.employee_no);
+        setAdminNavVisibility(currentRole);
+        if (currentRole !== 'admin') {
+          appRoot.classList.add('hidden');
+          blockedBox.classList.remove('hidden');
+          statusText.textContent = '접근 권한 없음';
+          return;
+        }
+        blockedBox.classList.add('hidden');
+        appRoot.classList.remove('hidden');
         await loadEmployees();
       } catch (err) {
         console.error(err);

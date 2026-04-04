@@ -7,26 +7,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-      background: #f4f6fb;
-      color: #101828;
-    }
-    .wrap {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 20px 14px 110px;
-    }
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-    .title-area h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.4px; }
+    body { margin: 0; font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; background: #f4f6fb; color: #101828; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 20px 14px 110px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .title-area h1 { margin: 0; font-size: 26px; font-weight: 800; }
     .title-area p { margin: 6px 0 0; color: #667085; font-size: 13px; }
     .top-actions { display: flex; flex-wrap: wrap; gap: 8px; }
     button { border: 0; border-radius: 12px; padding: 11px 14px; font-size: 13px; font-weight: 700; cursor: pointer; min-height: 42px; }
@@ -34,20 +18,8 @@
     .btn-secondary { background: #e5e7eb; color: #111827; }
     .btn-admin { background: #e6007e; color: #fff; display: none; }
 
-    .panel {
-      background: #fff;
-      border: 1px solid #eaecf0;
-      border-radius: 18px;
-      box-shadow: 0 4px 18px rgba(16, 24, 40, 0.04);
-      margin-bottom: 12px;
-      padding: 14px;
-    }
-
-    .dashboard-cards {
-      display: grid;
-      gap: 10px;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
+    .panel { background: #fff; border: 1px solid #eaecf0; border-radius: 18px; box-shadow: 0 4px 18px rgba(16, 24, 40, 0.04); margin-bottom: 12px; padding: 14px; }
+    .dashboard-cards { display: grid; gap: 10px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .metric-card { border: 1px solid #eaecf0; border-radius: 14px; padding: 12px; background: #fcfcfd; }
     .metric-label { font-size: 12px; color: #667085; font-weight: 700; }
     .metric-value { margin-top: 6px; font-size: 22px; font-weight: 800; color: #111827; }
@@ -55,158 +27,59 @@
     .toolbar { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; align-items: end; }
     .field { display: flex; flex-direction: column; gap: 6px; }
     .field label { font-size: 12px; color: #475467; font-weight: 700; }
-    .field input, .field select {
-      height: 42px; border-radius: 12px; border: 1px solid #d0d5dd;
-      padding: 0 11px; font-size: 14px; outline: none; background: #fff;
-    }
-    .field input:focus, .field select:focus { border-color: #111827; }
+    .field input, .field select { height: 42px; border-radius: 12px; border: 1px solid #d0d5dd; padding: 0 11px; font-size: 14px; outline: none; background: #fff; }
 
-    .summary {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
+    .summary { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
     .summary-left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      height: 30px;
-      border-radius: 999px;
-      background: #eef2ff;
-      color: #3730a3;
-      font-size: 12px;
-      font-weight: 800;
-      padding: 0 11px;
-    }
+    .badge { display: inline-flex; align-items: center; height: 30px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-size: 12px; font-weight: 800; padding: 0 11px; }
     .muted { color: #667085; font-size: 13px; }
 
-    .major-tab-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
+    .major-tab-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
     .major-tab-header h2 { margin: 0; font-size: 16px; font-weight: 800; }
-    .tab-scroll {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 2px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-    }
-    .tab-chip {
-      flex: 0 0 auto;
-      min-height: 40px;
-      border-radius: 999px;
-      border: 1px solid #d0d5dd;
-      background: #fff;
-      color: #344054;
-      padding: 0 14px;
-      font-size: 13px;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      white-space: nowrap;
-    }
+    .tab-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+    .tab-chip { flex: 0 0 auto; min-height: 40px; border-radius: 999px; border: 1px solid #d0d5dd; background: #fff; color: #344054; padding: 0 14px; font-size: 13px; font-weight: 700; }
     .tab-chip.active { background: #111827; border-color: #111827; color: #fff; }
     .tab-chip:disabled { background: #f9fafb; color: #98a2b3; cursor: not-allowed; }
 
     .leader-list { display: grid; gap: 12px; }
-    .leader-card { border: 1px solid #e4e7ec; background: #fff; border-radius: 16px; overflow: hidden; }
+    .leader-card { border: 1px solid #c8d4ff; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 16px rgba(37,99,235,.10); }
     .leader-head {
-      background: linear-gradient(180deg, #f8f9fc 0%, #f5f7fb 100%);
-      border-bottom: 1px solid #eaecf0;
-      padding: 12px;
+      background: linear-gradient(135deg, #1d4ed8 0%, #312e81 100%);
+      border-bottom: 1px solid #c7d2fe;
+      padding: 14px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 8px;
     }
-    .staff-item.admin-action { cursor: pointer; }
-    .staff-item.admin-action:hover { background: #eef2ff; }
-    .staff-main {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-      min-width: 0;
-    }
-    .staff-name { font-size: 14px; font-weight: 700; color: #111827; }
-    .staff-position {
-      font-size: 12px;
-      color: #475467;
-      background: #f2f4f7;
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-weight: 700;
-    }
-    .leader-name { margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; }
+    .leader-title-wrap { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .leader-label { font-size: 11px; font-weight: 800; color: #dbeafe; background: rgba(255,255,255,.15); padding: 4px 8px; border-radius: 999px; }
+    .leader-name { margin: 0; font-size: 17px; font-weight: 900; color: #fff; letter-spacing: -.2px; }
     .leader-meta { display: flex; gap: 6px; flex-wrap: wrap; }
-    .meta-pill {
-      height: 26px; border-radius: 999px; padding: 0 9px; font-size: 12px; font-weight: 700;
-      background: #eef2ff; color: #3730a3; display: inline-flex; align-items: center;
-    }
+    .meta-pill { height: 26px; border-radius: 999px; padding: 0 9px; font-size: 12px; font-weight: 700; background: #eef2ff; color: #3730a3; display: inline-flex; align-items: center; }
 
-    .store-list { padding: 12px; display: grid; gap: 10px; }
-    .store-block { border: 1px solid #eaecf0; border-radius: 12px; background: #fcfcfd; padding: 10px; }
+    .leader-contact-wrap, .staff-contact-wrap { display:flex; gap:6px; align-items:center; }
+    .contact-btn { display:inline-flex; align-items:center; justify-content:center; min-height:28px; border-radius:999px; padding:0 10px; text-decoration:none; font-size:12px; font-weight:700; }
+    .call-btn { background:#e6007e; color:#fff; }
+    .sms-btn { background:#0ea5e9; color:#fff; }
+
+    .store-list { padding: 12px; display: grid; gap: 10px; background:#f8fbff; }
+    .store-block { border: 1px solid #dbe5f8; border-radius: 12px; background: #fff; padding: 10px; }
     .store-title { margin: 0 0 8px; font-size: 14px; font-weight: 800; color: #101828; }
     .staff-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-    .staff-item {
-      border: 1px solid #eaecf0; border-radius: 10px; background: #fff;
-      padding: 8px 9px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
-      min-height: 42px;
-    }
+    .staff-item { border: 1px solid #eaecf0; border-radius: 10px; background: #fff; padding: 8px 9px; display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 42px; }
     .staff-item.admin-action { cursor: pointer; }
     .staff-item.admin-action:hover { background: #eef2ff; }
     .staff-main { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-width: 0; }
     .staff-name { font-size: 14px; font-weight: 700; color: #111827; }
     .staff-position { font-size: 12px; color: #475467; background: #f2f4f7; border-radius: 999px; padding: 2px 8px; font-weight: 700; }
-    .call-btn {
-      display: inline-flex; align-items: center; justify-content: center; min-height: 28px; border-radius: 999px;
-      padding: 0 10px; text-decoration: none; background: #e6007e; color: #fff; font-size: 12px; font-weight: 700; flex: 0 0 auto;
-    }
 
-    .loading, .empty, .error-box, .notice-box {
-      background: #fff; border: 1px solid #eaecf0; border-radius: 16px; padding: 22px 15px; text-align: center;
-      color: #667085; font-size: 14px; line-height: 1.6;
-    }
-    .notice-box {
-      text-align: left; background: #fffbeb; border-color: #fedf89; color: #7a2e0e; margin-bottom: 10px;
-    }
+    .loading, .empty, .error-box, .notice-box { background: #fff; border: 1px solid #eaecf0; border-radius: 16px; padding: 22px 15px; text-align: center; color: #667085; font-size: 14px; line-height: 1.6; }
+    .notice-box { text-align: left; background: #fffbeb; border-color: #fedf89; color: #7a2e0e; margin-bottom: 10px; }
     .hidden { display: none !important; }
 
-    .bottom-nav {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 50;
-      background: #fff;
-      border-top: 1px solid #e4e7ec;
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
-      gap: 6px;
-    }
-    .nav-item {
-      border-radius: 12px;
-      min-height: 52px;
-      text-decoration: none;
-      color: #667085;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      font-size: 11px;
-      font-weight: 700;
-    }
+    .bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: #fff; border-top: 1px solid #e4e7ec; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 8px 6px calc(8px + env(safe-area-inset-bottom)); gap: 6px; }
+    .nav-item { border-radius: 12px; min-height: 52px; text-decoration: none; color: #667085; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 700; }
     .nav-item.active { background: #111827; color: #fff; }
     .nav-item .icon { font-size: 16px; line-height: 1; }
 
@@ -223,7 +96,6 @@
         <h1>운영 대시보드</h1>
         <p id="welcomeText">사용자 정보를 확인 중...</p>
       </div>
-
       <div class="top-actions">
         <button type="button" class="btn-admin" id="approveBtn">가입승인</button>
         <button type="button" class="btn-admin" id="storeEditBtn">매장관리</button>
@@ -241,8 +113,8 @@
 
     <div class="panel toolbar">
       <div class="field">
-        <label for="searchInput">이름 / 사번 검색</label>
-        <input id="searchInput" type="text" placeholder="이름 또는 사번 입력" />
+        <label for="searchInput">통합 검색 (이름/사번/팀장/매장)</label>
+        <input id="searchInput" type="text" placeholder="예: 홍길동, 1012, 김팀장, 가경점" />
       </div>
       <div class="field">
         <label for="positionFilter">직급</label>
@@ -281,8 +153,8 @@
 
   <nav class="bottom-nav" aria-label="하단 네비게이션">
     <a class="nav-item active" href="front.html"><span class="icon">🏠</span><span>대시보드</span></a>
-    <a class="nav-item" href="employees.html"><span class="icon">👥</span><span>직원</span></a>
-    <a class="nav-item" href="store-edit.html"><span class="icon">🏬</span><span>매장</span></a>
+    <a class="nav-item hidden" data-admin-only="true" href="employees.html"><span class="icon">👥</span><span>직원</span></a>
+    <a class="nav-item hidden" data-admin-only="true" href="store-edit.html"><span class="icon">🏬</span><span>매장</span></a>
     <a class="nav-item" href="attendance.html"><span class="icon">🕒</span><span>근태</span></a>
     <a class="nav-item" href="payroll.html"><span class="icon">💳</span><span>급여</span></a>
   </nav>
@@ -294,29 +166,12 @@
 
     const COLUMN_MAP = {
       directory: {
-        employeeNo: 'employee_no',
-        employeeName: 'name',
-        storeName: 'store_name',
-        managerName: 'manager_name',
-        teamLeaderName: 'team_leader_name',
-        positionName: 'position_name',
-        publicPhone: 'public_phone',
-        phone: 'phone'
+        employeeNo: 'employee_no', employeeName: 'name', storeName: 'store_name', managerName: 'manager_name',
+        teamLeaderName: 'team_leader_name', positionName: 'position_name', publicPhone: 'public_phone', phone: 'phone'
       },
-      account: {
-        employeeNo: 'employee_no',
-        authUserId: 'auth_user_id',
-        signupApproved: 'signup_approved',
-        accountStatus: 'account_status'
-      },
-      employee: {
-        employeeNo: 'employee_no',
-        systemRoleId: 'system_role_id'
-      },
-      role: {
-        id: 'id',
-        roleName: 'role_name'
-      }
+      account: { employeeNo: 'employee_no', authUserId: 'auth_user_id', signupApproved: 'signup_approved', accountStatus: 'account_status' },
+      employee: { employeeNo: 'employee_no', systemRoleId: 'system_role_id' },
+      role: { id: 'id', roleName: 'role_name' }
     };
 
     const MAJOR_GROUPS = ['전체', '청주', '충북', '대전', '충남', '부산', '소사장'];
@@ -341,7 +196,6 @@
     const majorTabList = document.getElementById('majorTabList');
     const majorGuideText = document.getElementById('majorGuideText');
     const majorMissingNotice = document.getElementById('majorMissingNotice');
-
     const loadingBox = document.getElementById('loadingBox');
     const errorBox = document.getElementById('errorBox');
     const errorMessage = document.getElementById('errorMessage');
@@ -353,12 +207,45 @@
     let currentRole = 'viewer';
     let selectedMajorGroup = '전체';
 
+    function setAdminNavVisibility(roleName) {
+      document.querySelectorAll('[data-admin-only="true"]').forEach((el) => {
+        el.classList.toggle('hidden', roleName !== 'admin');
+      });
+    }
+
     function escapeHtml(value) {
       return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
     }
-
     function normalizeText(value) { return String(value ?? '').trim(); }
     function normalizeAccountStatus(status) { return String(status || '').toLowerCase().trim(); }
+
+    function extractDialableNumber(phoneValue) {
+      const raw = normalizeText(phoneValue);
+      if (!raw) return '';
+      return raw.replace(/[^0-9+]/g, '');
+    }
+
+    function buildContactButtons(phoneValue) {
+      const dialable = extractDialableNumber(phoneValue);
+      if (!dialable) return '';
+      return `
+        <div class="staff-contact-wrap">
+          <a href="tel:${escapeHtml(dialable)}" class="contact-btn call-btn" onclick="event.stopPropagation();">📞</a>
+          <a href="sms:${escapeHtml(dialable)}" class="contact-btn sms-btn" onclick="event.stopPropagation();">💬</a>
+        </div>
+      `;
+    }
+
+    function buildLeaderContactButtons(phoneValue) {
+      const dialable = extractDialableNumber(phoneValue);
+      if (!dialable) return '';
+      return `
+        <div class="leader-contact-wrap">
+          <a href="tel:${escapeHtml(dialable)}" class="contact-btn call-btn" onclick="event.stopPropagation();">📞</a>
+          <a href="sms:${escapeHtml(dialable)}" class="contact-btn sms-btn" onclick="event.stopPropagation();">💬</a>
+        </div>
+      `;
+    }
 
     function uniqueSortedValues(rows, key) {
       const values = rows.map((row) => row[key]).filter((v) => normalizeText(v) !== '').map((v) => normalizeText(v));
@@ -393,14 +280,6 @@
       errorBox.classList.remove('hidden');
       errorMessage.textContent = message;
       statusText.textContent = '오류 발생';
-    }
-
-    function buildPhoneButton(phoneValue) {
-      const phoneText = normalizeText(phoneValue);
-      if (!phoneText) return '';
-      const phoneHref = phoneText.replace(/[^0-9+]/g, '');
-      if (!phoneHref) return '';
-      return `<a href="tel:${escapeHtml(phoneHref)}" class="call-btn" onclick="event.stopPropagation();">통화</a>`;
     }
 
     function canUseMajorFilter() {
@@ -440,9 +319,11 @@
       return allRows.filter((row) => {
         const employeeNo = normalizeText(row[c.employeeNo]).toLowerCase();
         const employeeName = normalizeText(row[c.employeeName]).toLowerCase();
+        const teamLeaderName = normalizeText(row[c.teamLeaderName]).toLowerCase();
+        const storeName = normalizeText(row[c.storeName]).toLowerCase();
         const positionName = normalizeText(row[c.positionName]);
 
-        const matchKeyword = !keyword || employeeNo.includes(keyword) || employeeName.includes(keyword);
+        const matchKeyword = !keyword || employeeNo.includes(keyword) || employeeName.includes(keyword) || teamLeaderName.includes(keyword) || storeName.includes(keyword);
         const matchPosition = !selectedPosition || positionName === selectedPosition;
 
         let matchMajor = true;
@@ -476,11 +357,17 @@
       rows.forEach((row) => {
         const leaderName = normalizeText(row[c.teamLeaderName]) || '팀장 미지정';
         const storeName = normalizeText(row[c.storeName]) || '매장 미지정';
+        const employeeName = normalizeText(row[c.employeeName]);
+        const employeePhone = row[c.publicPhone] ?? row[c.phone] ?? '';
 
         if (!leaderMap.has(leaderName)) {
-          leaderMap.set(leaderName, { leaderName, stores: new Map(), staffCount: 0 });
+          leaderMap.set(leaderName, { leaderName, leaderPhone: '', stores: new Map(), staffCount: 0 });
         }
+
         const leader = leaderMap.get(leaderName);
+        if (!leader.leaderPhone && employeeName && employeeName === leaderName) {
+          leader.leaderPhone = employeePhone;
+        }
 
         if (!leader.stores.has(storeName)) {
           leader.stores.set(storeName, { storeName, staff: [] });
@@ -489,6 +376,7 @@
         leader.stores.get(storeName).staff.push(row);
         leader.staffCount += 1;
       });
+    }
 
       return [...leaderMap.values()]
         .sort((a, b) => a.leaderName.localeCompare(b.leaderName, 'ko'))
@@ -500,12 +388,7 @@
               staff: store.staff.sort((a, b) => normalizeText(a[c.employeeName]).localeCompare(normalizeText(b[c.employeeName]), 'ko'))
             }));
 
-          return {
-            leaderName: leader.leaderName,
-            storeCount: stores.length,
-            staffCount: leader.staffCount,
-            stores
-          };
+          return { leaderName: leader.leaderName, leaderPhone: leader.leaderPhone, storeCount: stores.length, staffCount: leader.staffCount, stores };
         });
     }
 
@@ -520,7 +403,6 @@
       const employeeName = normalizeText(row[c.employeeName]) || '-';
       const positionName = normalizeText(row[c.positionName]) || '직급 미지정';
       const phoneValue = row[c.publicPhone] ?? row[c.phone] ?? '';
-
       const adminClass = currentRole === 'admin' ? 'admin-action' : '';
       const adminClick = currentRole === 'admin' ? `onclick="goEdit('${String(employeeNo).replaceAll("'", "\\'")}')"` : '';
 
@@ -530,7 +412,7 @@
             <span class="staff-name">${escapeHtml(employeeName)}</span>
             <span class="staff-position">${escapeHtml(positionName)}</span>
           </div>
-          ${buildPhoneButton(phoneValue)}
+          ${buildContactButtons(phoneValue)}
         </li>
       `;
     }
@@ -546,7 +428,11 @@
       return `
         <article class="leader-card">
           <div class="leader-head">
-            <h3 class="leader-name">${escapeHtml(leaderGroup.leaderName)}</h3>
+            <div class="leader-title-wrap">
+              <span class="leader-label">TEAM LEADER</span>
+              <h3 class="leader-name">${escapeHtml(leaderGroup.leaderName)}</h3>
+              ${buildLeaderContactButtons(leaderGroup.leaderPhone)}
+            </div>
             <div class="leader-meta">
               <span class="meta-pill">매장 ${leaderGroup.storeCount}개</span>
               <span class="meta-pill">직원 ${leaderGroup.staffCount}명</span>
@@ -569,7 +455,6 @@
     function renderDirectory() {
       const filteredRows = sortRows(filterRows());
       const leaderGroups = groupByLeaderAndStore(filteredRows);
-
       loadingBox.classList.add('hidden');
       errorBox.classList.add('hidden');
       countBadge.textContent = `총 ${filteredRows.length}명`;
@@ -626,7 +511,6 @@
     async function getMyEmployeeRole(employeeNo) {
       const e = COLUMN_MAP.employee;
       const r = COLUMN_MAP.role;
-
       const { data: employeeData, error: employeeError } = await supabaseClient
         .from('au_employees')
         .select(`${e.employeeNo}, ${e.systemRoleId}`)
@@ -637,7 +521,6 @@
         console.error('au_employees 조회 오류:', employeeError);
         throw new Error(`직원 정보를 불러오지 못했어. 상세 오류: ${employeeError.message}`);
       }
-
       if (!employeeData || !employeeData[e.systemRoleId]) return 'viewer';
 
       const { data: roleData, error: roleError } = await supabaseClient
@@ -650,14 +533,12 @@
         console.error('au_system_roles 조회 오류:', roleError);
         throw new Error(`권한 정보를 불러오지 못했어. 상세 오류: ${roleError.message}`);
       }
-
       return String(roleData?.[r.roleName] || 'viewer').toLowerCase();
     }
 
     async function loadDirectory() {
       setLoading(true);
       const c = COLUMN_MAP.directory;
-
       const { data, error } = await supabaseClient
         .from('au_employee_directory_view')
         .select(`${c.employeeNo}, ${c.employeeName}, ${c.storeName}, ${c.managerName}, ${c.teamLeaderName}, ${c.positionName}, ${c.publicPhone}`)
@@ -679,23 +560,14 @@
     approveBtn.addEventListener('click', () => { location.href = 'auth-requests.html'; });
     storeEditBtn.addEventListener('click', () => { location.href = 'store-edit.html'; });
     refreshBtn.addEventListener('click', async () => {
-      try {
-        statusText.textContent = '새로고침 중...';
-        await loadDirectory();
-      } catch (err) {
-        console.error(err);
-        showError(err.message || '새로고침 중 오류가 발생했어.');
-      }
+      try { statusText.textContent = '새로고침 중...'; await loadDirectory(); }
+      catch (err) { console.error(err); showError(err.message || '새로고침 중 오류가 발생했어.'); }
     });
 
     logoutBtn.addEventListener('click', async () => {
       try {
         const { error } = await supabaseClient.auth.signOut();
-        if (error) {
-          console.error('로그아웃 오류:', error);
-          alert(`로그아웃 실패: ${error.message}`);
-          return;
-        }
+        if (error) { console.error('로그아웃 오류:', error); alert(`로그아웃 실패: ${error.message}`); return; }
         location.replace('index.html');
       } catch (err) {
         console.error('로그아웃 처리 예외:', err);
@@ -715,14 +587,14 @@
       try {
         statusText.textContent = '로그인 상태 확인 중...';
         await ensureLoggedIn();
-
         statusText.textContent = '조직도 조회 중...';
         await loadDirectory();
 
         const myAccount = await getMyAccount();
         validateAccount(myAccount);
-
         currentRole = await getMyEmployeeRole(myAccount.employee_no);
+        setAdminNavVisibility(currentRole);
+
         welcomeText.textContent = `${myAccount.employee_no} 로그인됨`;
         roleText.textContent = `권한: ${currentRole}`;
 
