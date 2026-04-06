@@ -1,0 +1,4 @@
+* { box-sizing: border-box; }
+body { margin:0; font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+.hidden { display:none !important; }
+button, input, select, textarea { font-family: inherit; }

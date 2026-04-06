@@ -3,191 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>조직도 시스템 가입승인 관리</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f6fb;
-      color: #111;
-    }
-    .wrap {
-      max-width: 1200px;
-      margin: 32px auto;
-      padding: 0 16px;
-    }
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .title {
-      font-size: 28px;
-      font-weight: 700;
-      margin: 0;
-    }
-    .sub {
-      margin: 6px 0 0;
-      font-size: 14px;
-      color: #666;
-    }
-    .btn {
-      border: 0;
-      border-radius: 10px;
-      padding: 11px 14px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .btn-dark {
-      background: #111827;
-      color: #fff;
-    }
-    .btn-gray {
-      background: #e5e7eb;
-      color: #111;
-    }
-    .btn-red {
-      background: #dc2626;
-      color: #fff;
-    }
-    .btn-blue {
-      background: #2563eb;
-      color: #fff;
-    }
-    .layout {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 18px;
-    }
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-      overflow: hidden;
-    }
-    .card-head {
-      padding: 18px 20px;
-      border-bottom: 1px solid #edf0f5;
-      font-size: 16px;
-      font-weight: 700;
-    }
-    .card-body {
-      padding: 18px 20px;
-    }
-    .table-wrap {
-      overflow-x: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 860px;
-    }
-    th, td {
-      text-align: left;
-      padding: 12px 10px;
-      border-bottom: 1px solid #edf0f5;
-      font-size: 14px;
-      vertical-align: middle;
-    }
-    th {
-      background: #fafbfc;
-      font-weight: 700;
-      color: #333;
-    }
-    tr.active-row {
-      background: #f8fbff;
-    }
-    .empty {
-      padding: 32px 12px;
-      text-align: center;
-      color: #777;
-      font-size: 14px;
-    }
-    .detail-grid {
-      display: grid;
-      grid-template-columns: 120px 1fr;
-      gap: 12px 14px;
-      font-size: 14px;
-    }
-    .label {
-      color: #666;
-      font-weight: 700;
-    }
-    .value {
-      color: #111;
-      word-break: break-all;
-    }
-    .detail-actions {
-      display: grid;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    textarea {
-      width: 100%;
-      min-height: 100px;
-      border: 1px solid #d7deea;
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 14px;
-      resize: vertical;
-    }
-    .msg {
-      margin-bottom: 16px;
-      padding: 12px 14px;
-      border-radius: 10px;
-      font-size: 14px;
-      display: none;
-    }
-    .msg.success {
-      display: block;
-      background: #ecfdf3;
-      border: 1px solid #bbf7d0;
-      color: #166534;
-    }
-    .msg.error {
-      display: block;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      color: #991b1b;
-    }
-    .badge {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      background: #fff7ed;
-      color: #9a3412;
-    }
-    .row-btn {
-      padding: 8px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      border: 0;
-      background: #eef2ff;
-      color: #3730a3;
-      cursor: pointer;
-      font-weight: 700;
-    }
+  <title>가입 승인 관리</title>
+  
+  <link rel="stylesheet" href="assets/css/common.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/nav.css" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
 
-    @media (max-width: 980px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
 </head>
 <body>
   <div class="wrap">
     <div class="topbar">
       <div>
         <h1 class="title">가입 승인 관리</h1>
-        <p class="sub">가입 신청 목록을 확인하고 승인 또는 거절 처리한다.</p>
+        <p class="sub">신청건 선택 후 승인/거절 RPC를 실행한다.</p>
       </div>
       <div style="display:flex; gap:8px;">
         <button class="btn btn-gray" id="refreshBtn">새로고침</button>
@@ -196,8 +25,9 @@
     </div>
 
     <div id="messageBox" class="msg"></div>
+    <div id="blockedBox" class="blocked hidden">관리자 전용 페이지야.</div>
 
-    <div class="layout">
+    <div id="appRoot" class="layout">
       <div class="card">
         <div class="card-head">대기중인 가입 신청</div>
         <div class="card-body">
@@ -205,22 +35,10 @@
             <table>
               <thead>
                 <tr>
-                  <th>신청일</th>
-                  <th>사번</th>
-                  <th>이름</th>
-                  <th>이메일</th>
-                  <th>연락처</th>
-                  <th>매장</th>
-                  <th>직급</th>
-                  <th>상태</th>
-                  <th>선택</th>
+                  <th>신청일</th><th>사번</th><th>이름</th><th>이메일</th><th>연락처</th><th>매장</th><th>직급</th><th>상태</th><th>선택</th>
                 </tr>
               </thead>
-              <tbody id="requestTableBody">
-                <tr>
-                  <td colspan="9" class="empty">불러오는 중...</td>
-                </tr>
-              </tbody>
+              <tbody id="requestTableBody"><tr><td colspan="9" class="empty">불러오는 중...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -230,17 +48,13 @@
         <div class="card-head">신청 상세</div>
         <div class="card-body">
           <div id="detailEmpty" class="empty">목록에서 신청건을 선택해.</div>
-
           <div id="detailBox" style="display:none;">
             <div class="detail-grid">
               <div class="label">신청 ID</div><div class="value" id="d_id">-</div>
               <div class="label">사번</div><div class="value" id="d_employee_no">-</div>
               <div class="label">이름</div><div class="value" id="d_name">-</div>
-              <div class="label">생년월일</div><div class="value" id="d_birth_date">-</div>
-              <div class="label">입사일</div><div class="value" id="d_hire_date">-</div>
               <div class="label">연락처</div><div class="value" id="d_phone">-</div>
               <div class="label">이메일</div><div class="value" id="d_email">-</div>
-              <div class="label">주소</div><div class="value" id="d_address">-</div>
               <div class="label">매장</div><div class="value" id="d_store">-</div>
               <div class="label">담당</div><div class="value" id="d_manager">-</div>
               <div class="label">팀장</div><div class="value" id="d_team_leader">-</div>
@@ -251,7 +65,6 @@
 
             <div class="detail-actions">
               <button class="btn btn-blue" id="approveBtn">승인</button>
-
               <textarea id="rejectReason" placeholder="거절 사유 입력"></textarea>
               <button class="btn btn-red" id="rejectBtn">거절</button>
             </div>
@@ -261,267 +74,18 @@
     </div>
   </div>
 
-  <script>
-    const SUPABASE_URL = 'https://ytnxmnbctujuopbqpurl.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_4oBm89ecivuVF6StOBz7yg_qNBItC4z';
+  <nav class="bottom-nav" aria-label="하단 네비게이션">
+    <a class="nav-item" href="front.html"><span class="icon">🏠</span><span>대시보드</span></a>
+    <a class="nav-item hidden" data-admin-only="true" href="employees.html"><span class="icon">👥</span><span>직원</span></a>
+    <a class="nav-item hidden" data-admin-only="true" href="store-edit.html"><span class="icon">🏬</span><span>매장</span></a>
+    <a class="nav-item" href="attendance.html"><span class="icon">🕒</span><span>근태</span></a>
+    <a class="nav-item" href="payroll.html"><span class="icon">💳</span><span>급여</span></a>
+  </nav>
 
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const messageBox = document.getElementById('messageBox');
-    const requestTableBody = document.getElementById('requestTableBody');
-    const detailEmpty = document.getElementById('detailEmpty');
-    const detailBox = document.getElementById('detailBox');
-    const rejectReasonEl = document.getElementById('rejectReason');
-
-    let selectedRequest = null;
-    let currentAdminEmployeeNo = null;
-    let requestRows = [];
-
-    const detailIds = [
-      'id', 'employee_no', 'name', 'birth_date', 'hire_date', 'phone', 'email',
-      'address', 'store', 'manager', 'team_leader', 'position', 'status', 'created_at'
-    ];
-
-    function showMessage(type, text) {
-      messageBox.className = `msg ${type}`;
-      messageBox.textContent = text;
-    }
-
-    function clearMessage() {
-      messageBox.className = 'msg';
-      messageBox.textContent = '';
-      messageBox.style.display = 'none';
-    }
-
-    function safeText(value) {
-      return value ?? '-';
-    }
-
-    function formatDateTime(value) {
-      if (!value) return '-';
-      const d = new Date(value);
-      if (Number.isNaN(d.getTime())) return value;
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    }
-
-    async function loadCurrentAdmin() {
-      const { data: userData, error: userError } = await supabaseClient.auth.getUser();
-      if (userError) throw new Error(userError.message);
-
-      const user = userData?.user;
-      if (!user) {
-        throw new Error('로그인 상태가 아니야.');
-      }
-
-      const { data: account, error: accountError } = await supabaseClient
-        .from('au_employee_accounts')
-        .select(`
-          employee_no,
-          signup_approved,
-          account_status,
-          au_employees (
-            system_role_id,
-            is_active,
-            employment_status
-          )
-        `)
-        .eq('auth_user_id', user.id)
-        .maybeSingle();
-
-      if (accountError) throw new Error(accountError.message);
-      if (!account) throw new Error('관리자 계정 정보를 찾을 수 없어.');
-
-      currentAdminEmployeeNo = account.employee_no;
-    }
-
-    async function loadPendingRequests() {
-      clearMessage();
-
-      const { data, error } = await supabaseClient
-        .from('au_signup_requests')
-        .select(`
-          id,
-          employee_no,
-          name,
-          birth_date,
-          phone,
-          email,
-          address,
-          hire_date,
-          request_status,
-          created_at,
-          requested_store_id,
-          requested_manager_id,
-          requested_team_leader_id,
-          requested_position_id,
-          au_stores:requested_store_id ( id, store_name ),
-          au_managers:requested_manager_id ( id, manager_name ),
-          au_team_leaders:requested_team_leader_id ( id, team_leader_name ),
-          au_positions:requested_position_id ( id, position_name )
-        `)
-        .eq('request_status', 'pending')
-        .order('created_at', { ascending: true });
-
-      if (error) throw new Error(error.message);
-
-      requestRows = data || [];
-      renderRequestTable();
-    }
-
-    function renderRequestTable() {
-      if (!requestRows.length) {
-        requestTableBody.innerHTML = `
-          <tr>
-            <td colspan="9" class="empty">대기중인 신청이 없어.</td>
-          </tr>
-        `;
-        selectedRequest = null;
-        detailBox.style.display = 'none';
-        detailEmpty.style.display = 'block';
-        return;
-      }
-
-      requestTableBody.innerHTML = requestRows.map(row => {
-        const isActive = selectedRequest && selectedRequest.id === row.id;
-        return `
-          <tr class="${isActive ? 'active-row' : ''}">
-            <td>${formatDateTime(row.created_at)}</td>
-            <td>${safeText(row.employee_no)}</td>
-            <td>${safeText(row.name)}</td>
-            <td>${safeText(row.email)}</td>
-            <td>${safeText(row.phone)}</td>
-            <td>${safeText(row.au_stores?.store_name)}</td>
-            <td>${safeText(row.au_positions?.position_name)}</td>
-            <td><span class="badge">${safeText(row.request_status)}</span></td>
-            <td>
-              <button class="row-btn" type="button" onclick="window.selectRequest(${row.id})">선택</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function fillDetail(row) {
-      document.getElementById('d_id').textContent = safeText(row.id);
-      document.getElementById('d_employee_no').textContent = safeText(row.employee_no);
-      document.getElementById('d_name').textContent = safeText(row.name);
-      document.getElementById('d_birth_date').textContent = safeText(row.birth_date);
-      document.getElementById('d_hire_date').textContent = safeText(row.hire_date);
-      document.getElementById('d_phone').textContent = safeText(row.phone);
-      document.getElementById('d_email').textContent = safeText(row.email);
-      document.getElementById('d_address').textContent = safeText(row.address);
-      document.getElementById('d_store').textContent = safeText(row.au_stores?.store_name);
-      document.getElementById('d_manager').textContent = safeText(row.au_managers?.manager_name);
-      document.getElementById('d_team_leader').textContent = safeText(row.au_team_leaders?.team_leader_name);
-      document.getElementById('d_position').textContent = safeText(row.au_positions?.position_name);
-      document.getElementById('d_status').textContent = safeText(row.request_status);
-      document.getElementById('d_created_at').textContent = formatDateTime(row.created_at);
-    }
-
-    window.selectRequest = function(requestId) {
-      const found = requestRows.find(item => item.id === requestId);
-      if (!found) return;
-
-      selectedRequest = found;
-      fillDetail(found);
-      detailEmpty.style.display = 'none';
-      detailBox.style.display = 'block';
-      renderRequestTable();
-    };
-
-    async function approveSelectedRequest() {
-      if (!selectedRequest) {
-        showMessage('error', '선택된 신청건이 없어.');
-        return;
-      }
-
-      const ok = confirm(`사번 ${selectedRequest.employee_no || '-'} / ${selectedRequest.name || '-'} 신청을 승인할까?`);
-      if (!ok) return;
-
-      const { error } = await supabaseClient.rpc('au_approve_signup_request', {
-        p_request_id: selectedRequest.id,
-        p_reviewed_by_employee_no: currentAdminEmployeeNo
-      });
-
-      if (error) throw new Error(error.message);
-
-      showMessage('success', '승인 처리 완료.');
-      selectedRequest = null;
-      rejectReasonEl.value = '';
-      detailBox.style.display = 'none';
-      detailEmpty.style.display = 'block';
-      await loadPendingRequests();
-    }
-
-    async function rejectSelectedRequest() {
-      if (!selectedRequest) {
-        showMessage('error', '선택된 신청건이 없어.');
-        return;
-      }
-
-      const reason = rejectReasonEl.value.trim();
-      if (!reason) {
-        showMessage('error', '거절 사유를 입력해.');
-        return;
-      }
-
-      const ok = confirm(`사번 ${selectedRequest.employee_no || '-'} / ${selectedRequest.name || '-'} 신청을 거절할까?`);
-      if (!ok) return;
-
-      const { error } = await supabaseClient.rpc('au_reject_signup_request', {
-        p_request_id: selectedRequest.id,
-        p_reviewed_by_employee_no: currentAdminEmployeeNo,
-        p_reject_reason: reason
-      });
-
-      if (error) throw new Error(error.message);
-
-      showMessage('success', '거절 처리 완료.');
-      selectedRequest = null;
-      rejectReasonEl.value = '';
-      detailBox.style.display = 'none';
-      detailEmpty.style.display = 'block';
-      await loadPendingRequests();
-    }
-
-      function gofront() {
-      location.href = 'front.html';
-    }
-
-    document.getElementById('approveBtn').addEventListener('click', async () => {
-      try {
-        await approveSelectedRequest();
-      } catch (error) {
-        showMessage('error', error.message || '승인 처리 중 오류가 발생했어.');
-      }
-    });
-
-    document.getElementById('rejectBtn').addEventListener('click', async () => {
-      try {
-        await rejectSelectedRequest();
-      } catch (error) {
-        showMessage('error', error.message || '거절 처리 중 오류가 발생했어.');
-      }
-    });
-
-    document.getElementById('refreshBtn').addEventListener('click', async () => {
-      try {
-        await loadPendingRequests();
-      } catch (error) {
-        showMessage('error', error.message || '새로고침 중 오류가 발생했어.');
-      }
-    });
-
-    document.getElementById('gofrontBtn').addEventListener('click', gofront);
-
-    (async function init() {
-      try {
-        await loadCurrentAdmin();
-        await loadPendingRequests();
-      } catch (error) {
-        showMessage('error', error.message || '초기 로딩 중 오류가 발생했어.');
-      }
-    })();
-  </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js"></script>
+  <script src="assets/js/auth-common.js"></script>
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/auth-requests.js"></script>
 </body>
 </html>
