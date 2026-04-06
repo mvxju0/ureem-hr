@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>직원 관리</title>
+  
+  <link rel="stylesheet" href="assets/css/common.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/nav.css" />
+  <link rel="stylesheet" href="assets/css/employee.css" />
+
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title-area">
+        <h1>직원 관리</h1>
+        <p>직원 목록을 조회하고 관리자 권한일 때 edit.html로 이동할 수 있어.</p>
+      </div>
+      <div class="top-actions">
+        <button type="button" class="btn-secondary" id="refreshBtn">새로고침</button>
+        <button type="button" class="btn-primary" id="homeBtn">대시보드</button>
+      </div>
+    </div>
+
+    <div id="blockedBox" class="panel hidden" style="text-align:center; color:#666;">관리자 전용 페이지야.</div>
+
+    <div id="appRoot">
+    <div class="panel toolbar">
+      <div class="field">
+        <label for="searchInput">이름 / 사번 검색</label>
+        <input id="searchInput" type="text" placeholder="이름 또는 사번" />
+      </div>
+      <div class="field">
+        <label for="storeFilter">매장</label>
+        <select id="storeFilter"><option value="">전체</option></select>
+      </div>
+      <div class="field">
+        <label for="positionFilter">직급</label>
+        <select id="positionFilter"><option value="">전체</option></select>
+      </div>
+    </div>
+
+    <div class="panel summary">
+      <span class="badge" id="countBadge">총 0명</span>
+      <span class="muted" id="statusText">조회 중...</span>
+    </div>
+
+    <div id="loadingBox" class="loading">직원 목록을 불러오는 중이야.</div>
+    <div id="errorBox" class="error-box hidden"><span id="errorMessage">오류가 발생했어.</span></div>
+    <div id="emptyBox" class="empty hidden">조건에 맞는 직원이 없어.</div>
+    <div id="employeeList" class="employee-list hidden"></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="하단 네비게이션">
+    <a class="nav-item" href="front.html"><span class="icon">🏠</span><span>대시보드</span></a>
+    <a class="nav-item active hidden" data-admin-only="true" href="employees.html"><span class="icon">👥</span><span>직원</span></a>
+    <a class="nav-item hidden" data-admin-only="true" href="store-edit.html"><span class="icon">🏬</span><span>매장</span></a>
+    <a class="nav-item" href="attendance.html"><span class="icon">🕒</span><span>근태</span></a>
+    <a class="nav-item" href="payroll.html"><span class="icon">💳</span><span>급여</span></a>
+  </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js"></script>
+  <script src="assets/js/auth-common.js"></script>
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/employee.js"></script>
+</body>
+</html>

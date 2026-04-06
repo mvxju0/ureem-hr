@@ -1,0 +1,3 @@
+.wrap { max-width: 1240px; margin: 0 auto; }
+.topbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+.panel, .card { background:#fff; }
