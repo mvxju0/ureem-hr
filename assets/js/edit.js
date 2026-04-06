@@ -85,28 +85,34 @@ function isHierarchyDisabledRole(roleName) {
   return normalized.includes('담당') || normalized.includes('팀장');
 }
 
-function buildHierarchyMap(rows) {
+function buildHierarchyMap(teamLeaders, stores) {
   teamLeaderIdsByManager = new Map();
   storeIdsByTeamLeader = new Map();
 
-  (rows || []).forEach((row) => {
-    const managerId = row.current_manager_id;
-    const teamLeaderId = row.current_team_leader_id;
-    const storeId = row.current_store_id;
-
-    if (managerId && teamLeaderId) {
-      if (!teamLeaderIdsByManager.has(managerId)) {
-        teamLeaderIdsByManager.set(managerId, new Set());
-      }
-      teamLeaderIdsByManager.get(managerId).add(teamLeaderId);
+  (teamLeaders || []).forEach((leader) => {
+    const groupId = leader.group_id;
+    if (!groupId || !leader.id) return;
+    if (!teamLeaderIdsByManager.has(groupId)) {
+      teamLeaderIdsByManager.set(groupId, new Set());
     }
+    teamLeaderIdsByManager.get(groupId).add(leader.id);
+  });
 
-    if (teamLeaderId && storeId) {
-      if (!storeIdsByTeamLeader.has(teamLeaderId)) {
-        storeIdsByTeamLeader.set(teamLeaderId, new Set());
+  const leaderNoById = new Map((teamLeaders || []).map((leader) => [leader.id, leader.employee_no]));
+
+  (stores || []).forEach((store) => {
+    const leaderEmployeeNo = store.team_leader_employee_no;
+    if (!leaderEmployeeNo || !store.id) return;
+
+    (teamLeaders || []).forEach((leader) => {
+      if (!leader.id) return;
+      if (leaderNoById.get(leader.id) === leaderEmployeeNo) {
+        if (!storeIdsByTeamLeader.has(leader.id)) {
+          storeIdsByTeamLeader.set(leader.id, new Set());
+        }
+        storeIdsByTeamLeader.get(leader.id).add(store.id);
       }
-      storeIdsByTeamLeader.get(teamLeaderId).add(storeId);
-    }
+    });
   });
 }
 
@@ -366,24 +372,23 @@ async function loadSelectOptions() {
     managersRes,
     teamLeadersRes,
     positionsRes,
-    systemRolesRes,
-    hierarchyRes
+    systemRolesRes
   ] = await Promise.all([
     supabaseClient
       .from('au_stores')
-      .select('id, store_name')
+      .select('id, store_name, team_leader_employee_no, group_id')
       .eq('is_active', true)
       .order('store_name', { ascending: true }),
 
     supabaseClient
-      .from('au_managers')
-      .select('id, manager_name')
+      .from('au_groups')
+      .select('id, group_name')
       .eq('is_active', true)
-      .order('manager_name', { ascending: true }),
+      .order('group_name', { ascending: true }),
 
     supabaseClient
       .from('au_team_leaders')
-      .select('id, team_leader_name')
+      .select('id, team_leader_name, employee_no, group_id')
       .eq('is_active', true)
       .order('team_leader_name', { ascending: true }),
 
@@ -409,16 +414,15 @@ async function loadSelectOptions() {
   if (teamLeadersRes.error) throw new Error(`팀장 불러오기 실패: ${teamLeadersRes.error.message}`);
   if (positionsRes.error) throw new Error(`직급 불러오기 실패: ${positionsRes.error.message}`);
   if (systemRolesRes.error) throw new Error(`권한 불러오기 실패: ${systemRolesRes.error.message}`);
-  if (hierarchyRes.error) throw new Error(`계층 매핑 불러오기 실패: ${hierarchyRes.error.message}`);
 
   allStores = storesRes.data || [];
   allTeamLeaders = teamLeadersRes.data || [];
 
-  appendOptions(managerSelect, managersRes.data || [], 'manager_name');
+  appendOptions(managerSelect, managersRes.data || [], 'group_name');
   appendOptions(positionSelect, positionsRes.data || [], 'position_name');
   appendOptions(systemRoleSelect, systemRolesRes.data || [], 'role_name');
 
-  buildHierarchyMap(hierarchyRes.data || []);
+  buildHierarchyMap(teamLeadersRes.data || [], storesRes.data || []);
   clearSelectOptions(teamLeaderSelect, '담당을 먼저 선택하세요');
   clearSelectOptions(storeSelect, '팀장을 먼저 선택하세요');
 }

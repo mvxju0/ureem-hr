@@ -10,8 +10,8 @@
       role: { id: 'id', roleName: 'role_name' }
     };
 
-    const MAJOR_GROUPS = ['전체', '청주', '충북', '대전', '충남', '부산', '소사장'];
-    const MAJOR_CATEGORY_FIELD = null;
+    let allGroups = [];
+    let employeeGroupMap = new Map();
 
     const approveBtn = document.getElementById('approveBtn');
     const storeEditBtn = document.getElementById('storeEditBtn');
@@ -119,20 +119,18 @@
     }
 
     function canUseMajorFilter() {
-      return typeof MAJOR_CATEGORY_FIELD === 'string' && MAJOR_CATEGORY_FIELD.length > 0;
+      return allGroups.length > 0;
     }
 
     function renderMajorTabs() {
       majorTabList.innerHTML = '';
       const majorFilterEnabled = canUseMajorFilter();
-      MAJOR_GROUPS.forEach((groupName) => {
+      const groups = ['전체', ...allGroups.map((group) => normalizeText(group.group_name)).filter(Boolean)];
+      groups.forEach((groupName) => {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = `tab-chip${groupName === selectedMajorGroup ? ' active' : ''}`;
         button.textContent = groupName;
-
-        const disabled = !majorFilterEnabled && groupName !== '전체';
-        button.disabled = disabled;
         button.addEventListener('click', () => {
           selectedMajorGroup = groupName;
           renderMajorTabs();
@@ -141,10 +139,10 @@
         majorTabList.appendChild(button);
       });
 
-      majorMissingNotice.classList.toggle('hidden', majorFilterEnabled);
+      majorMissingNotice.classList.add('hidden');
       majorGuideText.textContent = majorFilterEnabled
-        ? '대분류 탭을 누르면 팀장 카드/매장/직원 목록이 즉시 갱신돼.'
-        : '대분류 컬럼이 view에 추가되면 지역 탭 필터가 활성화돼.';
+        ? '대분류(담당) 탭을 누르면 팀장 카드/매장/직원 목록이 즉시 갱신돼.'
+        : '담당 데이터를 불러오는 중이야.';
     }
 
     function filterRows() {
@@ -165,8 +163,10 @@
         let matchMajor = true;
         if (selectedMajorGroup !== '전체') {
           if (canUseMajorFilter()) {
-            const majorValue = normalizeText(row[MAJOR_CATEGORY_FIELD]);
-            matchMajor = majorValue === selectedMajorGroup;
+            const employeeNoRaw = normalizeText(row[c.employeeNo]);
+            const groupId = employeeGroupMap.get(employeeNoRaw);
+            const selectedGroup = allGroups.find((group) => normalizeText(group.group_name) === selectedMajorGroup);
+            matchMajor = Boolean(selectedGroup && String(selectedGroup.id) === String(groupId));
           } else {
             matchMajor = false;
           }
@@ -374,19 +374,49 @@
     async function loadDirectory() {
       setLoading(true);
       const c = COLUMN_MAP.directory;
-      const { data, error } = await supabaseClient
+      const directoryPromise = supabaseClient
         .from('au_employee_directory_view')
         .select(`${c.employeeNo}, ${c.employeeName}, ${c.storeName}, ${c.managerName}, ${c.teamLeaderName}, ${c.positionName}, ${c.publicPhone}`)
         .order(c.teamLeaderName, { ascending: true })
         .order(c.storeName, { ascending: true })
         .order(c.employeeName, { ascending: true });
 
+      const groupsPromise = supabaseClient
+        .from('au_groups')
+        .select('id, group_name')
+        .eq('is_active', true)
+        .order('group_name', { ascending: true });
+
+      const employeesPromise = supabaseClient
+        .from('au_employees')
+        .select('employee_no, current_manager_id');
+
+      const [
+        { data, error },
+        { data: groupsData, error: groupsError },
+        { data: employeesData, error: employeesError }
+      ] = await Promise.all([directoryPromise, groupsPromise, employeesPromise]);
+
       if (error) {
         console.error('au_employee_directory_view 조회 오류:', error);
         throw new Error(`조직도 데이터를 불러오지 못했어. 상세 오류: ${error.message}`);
       }
+      if (groupsError) {
+        console.error('au_groups 조회 오류:', groupsError);
+        throw new Error(`담당 데이터를 불러오지 못했어. 상세 오류: ${groupsError.message}`);
+      }
+      if (employeesError) {
+        console.error('au_employees 조회 오류:', employeesError);
+        throw new Error(`직원-담당 매핑 데이터를 불러오지 못했어. 상세 오류: ${employeesError.message}`);
+      }
 
       allRows = Array.isArray(data) ? data : [];
+      allGroups = Array.isArray(groupsData) ? groupsData : [];
+      employeeGroupMap = new Map(
+        (Array.isArray(employeesData) ? employeesData : [])
+          .filter((row) => normalizeText(row.employee_no) !== '')
+          .map((row) => [normalizeText(row.employee_no), row.current_manager_id])
+      );
       fillSelect(positionFilter, uniqueSortedValues(allRows, c.positionName));
       renderMajorTabs();
       renderDirectory();

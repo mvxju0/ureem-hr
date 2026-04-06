@@ -116,30 +116,35 @@
       teamLeaderIdsByManager = new Map();
       storeIdsByTeamLeader = new Map();
 
-      (rows || []).forEach((row) => {
-        const managerId = row.current_manager_id;
-        const teamLeaderId = row.current_team_leader_id;
-        const storeId = row.current_store_id;
-
-        if (managerId && teamLeaderId) {
-          if (!teamLeaderIdsByManager.has(managerId)) {
-            teamLeaderIdsByManager.set(managerId, new Set());
-          }
-          teamLeaderIdsByManager.get(managerId).add(teamLeaderId);
+      (allTeamLeaders || []).forEach((leader) => {
+        const groupId = leader.group_id;
+        if (!groupId || !leader.id) return;
+        if (!teamLeaderIdsByManager.has(groupId)) {
+          teamLeaderIdsByManager.set(groupId, new Set());
         }
+        teamLeaderIdsByManager.get(groupId).add(leader.id);
+      });
 
-        if (teamLeaderId && storeId) {
-          if (!storeIdsByTeamLeader.has(teamLeaderId)) {
-            storeIdsByTeamLeader.set(teamLeaderId, new Set());
+      const leaderNoById = new Map((allTeamLeaders || []).map((leader) => [leader.id, leader.employee_no]));
+      (allStores || []).forEach((store) => {
+        const leaderEmployeeNo = store.team_leader_employee_no;
+        if (!leaderEmployeeNo || !store.id) return;
+
+        (allTeamLeaders || []).forEach((leader) => {
+          if (!leader.id) return;
+          if (leaderNoById.get(leader.id) === leaderEmployeeNo) {
+            if (!storeIdsByTeamLeader.has(leader.id)) {
+              storeIdsByTeamLeader.set(leader.id, new Set());
+            }
+            storeIdsByTeamLeader.get(leader.id).add(store.id);
           }
-          storeIdsByTeamLeader.get(teamLeaderId).add(storeId);
-        }
+        });
       });
     }
 
     function refreshManagerFilter() {
       clearSelectOptions(managerFilter, '전체 담당');
-      appendSelectOptions(managerFilter, allManagers, 'manager_name');
+      appendSelectOptions(managerFilter, allManagers, 'group_name');
       managerFilter.value = '';
     }
 
@@ -400,20 +405,20 @@
         .select('current_manager_id, current_team_leader_id, current_store_id');
 
       const managersPromise = supabaseClient
-        .from('au_managers')
-        .select('id, manager_name')
+        .from('au_groups')
+        .select('id, group_name')
         .eq('is_active', true)
-        .order('manager_name', { ascending: true });
+        .order('group_name', { ascending: true });
 
       const teamLeadersPromise = supabaseClient
         .from('au_team_leaders')
-        .select('id, team_leader_name')
+        .select('id, team_leader_name, employee_no, group_id')
         .eq('is_active', true)
         .order('team_leader_name', { ascending: true });
 
       const { data, error } = await supabaseClient
         .from('au_stores')
-        .select(`${s.id}, ${s.name}, ${s.isActive}`)
+        .select(`${s.id}, ${s.name}, ${s.isActive}, group_id, team_leader_employee_no, manager_employee_no`)
         .order(s.name, { ascending: true });
 
       if (error) {
