@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>급여 관리</title>
+  
+  <link rel="stylesheet" href="assets/css/common.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/nav.css" />
+
+</head>
+<body>
+  <div class="wrap">
+    <section class="panel">
+      <h1>급여 관리</h1>
+      <p>급여 기능은 현재 준비 중이야. DB 확장 없이 운영 구조만 먼저 잡아두었어.</p>
+      <div class="notice">가짜 급여 계산/샘플 금액은 넣지 않았고, 향후 급여 스키마와 정책 확정 뒤 실제 기능을 연결할 예정이야.</div>
+    </section>
+  </div>
+
+  <nav class="bottom-nav" aria-label="하단 네비게이션">
+    <a class="nav-item" href="front.html"><span class="icon">🏠</span><span>대시보드</span></a>
+    <a class="nav-item hidden" data-admin-only="true" href="employees.html"><span class="icon">👥</span><span>직원</span></a>
+    <a class="nav-item hidden" data-admin-only="true" href="store-edit.html"><span class="icon">🏬</span><span>매장</span></a>
+    <a class="nav-item" href="attendance.html"><span class="icon">🕒</span><span>근태</span></a>
+    <a class="nav-item active" href="payroll.html"><span class="icon">💳</span><span>급여</span></a>
+  </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js"></script>
+  <script src="assets/js/auth-common.js"></script>
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/placeholders.js"></script>
+</body>
+</html>

@@ -4,125 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>조직도 시스템 회원가입</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f7fb;
-      color: #222;
-    }
-    .wrap {
-      max-width: 720px;
-      margin: 40px auto;
-      padding: 20px;
-    }
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 28px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    }
-    h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
-    }
-    .desc {
-      margin: 0 0 24px;
-      color: #666;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .field.full {
-      grid-column: 1 / -1;
-    }
-    label {
-      font-size: 13px;
-      font-weight: 600;
-    }
-    input, select, button, textarea {
-      width: 100%;
-      border: 1px solid #d8deea;
-      border-radius: 10px;
-      padding: 12px 14px;
-      font-size: 14px;
-      background: #fff;
-    }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: #6b8cff;
-      box-shadow: 0 0 0 3px rgba(107,140,255,0.15);
-    }
-    .submit-btn {
-      border: 0;
-      background: #111827;
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-    .submit-btn:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-    .msg {
-      margin-top: 18px;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 14px;
-      line-height: 1.5;
-      display: none;
-    }
-    .msg.success {
-      display: block;
-      background: #ecfdf3;
-      color: #166534;
-      border: 1px solid #bbf7d0;
-    }
-    .msg.error {
-      display: block;
-      background: #fef2f2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
-    .row-note {
-      margin-top: 6px;
-      font-size: 12px;
-      color: #777;
-    }
 
-    @media (max-width: 768px) {
-      .wrap {
-        margin: 20px auto;
-        padding: 14px;
-      }
-      .card {
-        padding: 20px;
-      }
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="assets/css/common.css" />
+  <link rel="stylesheet" href="assets/css/auth.css" />
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <h1>조직도 시스템 회원가입</h1>
-      <p class="desc">
-        가입 신청 후 관리자 승인이 필요합니다.
-      </p>
+      <p class="desc">가입 신청 후 관리자 승인이 필요합니다.</p>
 
       <form id="signupForm">
         <div class="grid">
@@ -162,30 +52,30 @@
           </div>
 
           <div class="field">
-            <label for="requested_store_id">매장</label>
-            <select id="requested_store_id" name="requested_store_id" required>
-              <option value="">선택</option>
+            <label for="requested_position_id">직급</label>
+            <select id="requested_position_id" name="requested_position_id" required>
+              <option value="">직급을 먼저 선택하세요</option>
             </select>
           </div>
 
           <div class="field">
             <label for="requested_manager_id">담당</label>
-            <select id="requested_manager_id" name="requested_manager_id" required>
-              <option value="">선택</option>
+            <select id="requested_manager_id" name="requested_manager_id" required disabled>
+              <option value="">직급을 먼저 선택하세요</option>
             </select>
           </div>
 
           <div class="field">
             <label for="requested_team_leader_id">팀장</label>
-            <select id="requested_team_leader_id" name="requested_team_leader_id" required>
-              <option value="">선택</option>
+            <select id="requested_team_leader_id" name="requested_team_leader_id" required disabled>
+              <option value="">직급을 먼저 선택하세요</option>
             </select>
           </div>
 
           <div class="field">
-            <label for="requested_position_id">직급</label>
-            <select id="requested_position_id" name="requested_position_id" required>
-              <option value="">선택</option>
+            <label for="requested_store_id">매장</label>
+            <select id="requested_store_id" name="requested_store_id" required disabled>
+              <option value="">팀장을 먼저 선택하세요</option>
             </select>
           </div>
 
@@ -210,11 +100,10 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js"></script>
   <script>
-    const SUPABASE_URL = 'https://ytnxmnbctujuopbqpurl.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_4oBm89ecivuVF6StOBz7yg_qNBItC4z';
-
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.createSupabaseClient();
 
     const signupForm = document.getElementById('signupForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -224,6 +113,11 @@
     const managerSelect = document.getElementById('requested_manager_id');
     const teamLeaderSelect = document.getElementById('requested_team_leader_id');
     const positionSelect = document.getElementById('requested_position_id');
+
+    let allStores = [];
+    let allTeamLeaders = [];
+    let teamLeaderIdsByManager = new Map();
+    let storeIdsByTeamLeader = new Map();
 
     function showMessage(type, text) {
       messageBox.className = `msg ${type}`;
@@ -235,6 +129,12 @@
       return String(phone || '').replace(/[^0-9]/g, '');
     }
 
+    function toNullableNumber(value) {
+      if (value === null || value === undefined || value === '') return null;
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    }
+
     function appendOptions(selectEl, list, labelKey) {
       list.forEach(item => {
         const option = document.createElement('option');
@@ -244,52 +144,262 @@
       });
     }
 
+    function clearSelectOptions(selectEl, placeholder = '선택') {
+      selectEl.innerHTML = '';
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = placeholder;
+      selectEl.appendChild(option);
+    }
+
+    function appendMappedOptions(selectEl, options, labelKey) {
+      options.forEach((item) => {
+        const option = document.createElement('option');
+        option.value = String(item.id);
+        option.textContent = item[labelKey];
+        selectEl.appendChild(option);
+      });
+    }
+
+    function normalizeRoleName(roleName) {
+      return String(roleName || '').replace(/\s+/g, '').toLowerCase();
+    }
+
+    function getSelectedRoleName() {
+      const selectedOption = positionSelect.options[positionSelect.selectedIndex];
+      return selectedOption ? selectedOption.textContent.trim() : '';
+    }
+
+    function isHierarchyRequiredRole(roleName) {
+      const normalized = normalizeRoleName(roleName);
+      return normalized.includes('점장') || normalized.includes('플래너') || normalized === 'sp' || normalized.includes('(sp)') || normalized.includes('sp');
+    }
+
+    function isHierarchyDisabledRole(roleName) {
+      const normalized = normalizeRoleName(roleName);
+      return normalized.includes('담당') || normalized.includes('팀장');
+    }
+
+    function buildHierarchyMap(teamLeaders, stores) {
+      teamLeaderIdsByManager = new Map();
+      storeIdsByTeamLeader = new Map();
+
+      (teamLeaders || []).forEach((leader) => {
+        const groupId = leader.group_id;
+        if (!groupId || !leader.id) return;
+        if (!teamLeaderIdsByManager.has(groupId)) {
+          teamLeaderIdsByManager.set(groupId, new Set());
+        }
+        teamLeaderIdsByManager.get(groupId).add(leader.id);
+      });
+
+      const leaderNoById = new Map((teamLeaders || []).map((leader) => [leader.id, leader.employee_no]));
+
+      (stores || []).forEach((store) => {
+        const leaderEmployeeNo = store.team_leader_employee_no;
+        if (!leaderEmployeeNo || !store.id) return;
+
+        (teamLeaders || []).forEach((leader) => {
+          if (!leader.id) return;
+          if (leaderNoById.get(leader.id) === leaderEmployeeNo) {
+            if (!storeIdsByTeamLeader.has(leader.id)) {
+              storeIdsByTeamLeader.set(leader.id, new Set());
+            }
+            storeIdsByTeamLeader.get(leader.id).add(store.id);
+          }
+        });
+      });
+    }
+
+    function getFilteredTeamLeaders(managerId) {
+      if (!managerId) return [];
+      const allowed = teamLeaderIdsByManager.get(Number(managerId));
+      if (!allowed) return [];
+      return allTeamLeaders.filter((item) => allowed.has(item.id));
+    }
+
+    function getFilteredStores(teamLeaderId) {
+      if (!teamLeaderId) return [];
+      const allowed = storeIdsByTeamLeader.get(Number(teamLeaderId));
+      if (!allowed) return [];
+      return allStores.filter((item) => allowed.has(item.id));
+    }
+
+    function resetDependentFields(fromField) {
+      if (fromField === 'role') {
+        managerSelect.value = '';
+        teamLeaderSelect.value = '';
+        storeSelect.value = '';
+      }
+
+      if (fromField === 'manager') {
+        teamLeaderSelect.value = '';
+        storeSelect.value = '';
+      }
+
+      if (fromField === 'teamLeader') {
+        storeSelect.value = '';
+      }
+    }
+
+    function refreshTeamLeaderOptions({ preserveValue = false } = {}) {
+      const prevValue = preserveValue ? teamLeaderSelect.value : '';
+      const managerId = managerSelect.value;
+
+      if (!managerId) {
+        clearSelectOptions(teamLeaderSelect, '담당을 먼저 선택하세요');
+        teamLeaderSelect.value = '';
+        return;
+      }
+
+      const filtered = getFilteredTeamLeaders(managerId);
+      clearSelectOptions(teamLeaderSelect, filtered.length ? '선택' : '선택 가능한 팀장 없음');
+      appendMappedOptions(teamLeaderSelect, filtered, 'team_leader_name');
+
+      if (preserveValue && filtered.some((item) => String(item.id) === String(prevValue))) {
+        teamLeaderSelect.value = prevValue;
+      } else {
+        teamLeaderSelect.value = '';
+      }
+    }
+
+    function refreshStoreOptions({ preserveValue = false } = {}) {
+      const prevValue = preserveValue ? storeSelect.value : '';
+      const teamLeaderId = teamLeaderSelect.value;
+
+      if (!teamLeaderId) {
+        clearSelectOptions(storeSelect, '팀장을 먼저 선택하세요');
+        storeSelect.value = '';
+        return;
+      }
+
+      const filtered = getFilteredStores(teamLeaderId);
+      clearSelectOptions(storeSelect, filtered.length ? '선택' : '선택 가능한 매장 없음');
+      appendMappedOptions(storeSelect, filtered, 'store_name');
+
+      if (preserveValue && filtered.some((item) => String(item.id) === String(prevValue))) {
+        storeSelect.value = prevValue;
+      } else {
+        storeSelect.value = '';
+      }
+    }
+
+    function applyRoleBasedFieldState() {
+      const roleName = getSelectedRoleName();
+      const roleSelected = Boolean(positionSelect.value);
+
+      if (!roleSelected) {
+        managerSelect.disabled = true;
+        teamLeaderSelect.disabled = true;
+        storeSelect.disabled = true;
+        clearSelectOptions(managerSelect, '직급을 먼저 선택하세요');
+        clearSelectOptions(teamLeaderSelect, '직급을 먼저 선택하세요');
+        clearSelectOptions(storeSelect, '팀장을 먼저 선택하세요');
+        resetDependentFields('role');
+        return;
+      }
+
+      managerSelect.disabled = false;
+      clearSelectOptions(managerSelect, '선택');
+      appendMappedOptions(managerSelect, Array.from(managerSelect.dataset.rawManagers ? JSON.parse(managerSelect.dataset.rawManagers) : []), 'group_name');
+
+      if (isHierarchyDisabledRole(roleName)) {
+        teamLeaderSelect.disabled = true;
+        storeSelect.disabled = true;
+        clearSelectOptions(teamLeaderSelect, '팀장 선택 불필요');
+        clearSelectOptions(storeSelect, '매장 선택 불필요');
+        resetDependentFields('manager');
+        return;
+      }
+
+      teamLeaderSelect.disabled = !managerSelect.value;
+      storeSelect.disabled = true;
+
+      if (!managerSelect.value) {
+        clearSelectOptions(teamLeaderSelect, '담당을 먼저 선택하세요');
+        clearSelectOptions(storeSelect, '팀장을 먼저 선택하세요');
+        resetDependentFields('manager');
+        return;
+      }
+
+      refreshTeamLeaderOptions();
+      teamLeaderSelect.disabled = false;
+
+      if (!teamLeaderSelect.value) {
+        clearSelectOptions(storeSelect, '팀장을 먼저 선택하세요');
+        storeSelect.disabled = true;
+        return;
+      }
+
+      refreshStoreOptions();
+      storeSelect.disabled = false;
+    }
+
+    function bindHierarchyEvents() {
+      positionSelect.addEventListener('change', () => {
+        resetDependentFields('role');
+        applyRoleBasedFieldState();
+      });
+
+      managerSelect.addEventListener('change', () => {
+        resetDependentFields('manager');
+
+        const roleName = getSelectedRoleName();
+        if (isHierarchyDisabledRole(roleName)) {
+          clearSelectOptions(teamLeaderSelect, '팀장 선택 불필요');
+          clearSelectOptions(storeSelect, '매장 선택 불필요');
+          teamLeaderSelect.disabled = true;
+          storeSelect.disabled = true;
+          return;
+        }
+
+        refreshTeamLeaderOptions();
+        teamLeaderSelect.disabled = false;
+
+        clearSelectOptions(storeSelect, '팀장을 먼저 선택하세요');
+        storeSelect.disabled = true;
+      });
+
+      teamLeaderSelect.addEventListener('change', () => {
+        resetDependentFields('teamLeader');
+
+        if (!teamLeaderSelect.value) {
+          clearSelectOptions(storeSelect, '팀장을 먼저 선택하세요');
+          storeSelect.disabled = true;
+          return;
+        }
+
+        refreshStoreOptions();
+        storeSelect.disabled = false;
+      });
+    }
+
     async function loadSelectOptions() {
-      const [
-        storesRes,
-        managersRes,
-        teamLeadersRes,
-        positionsRes
-      ] = await Promise.all([
-        supabaseClient
-          .from('au_stores')
-          .select('id, store_name')
-          .eq('is_active', true)
-          .order('store_name', { ascending: true }),
-
-        supabaseClient
-          .from('au_managers')
-          .select('id, manager_name')
-          .eq('is_active', true)
-          .order('manager_name', { ascending: true }),
-
-        supabaseClient
-          .from('au_team_leaders')
-          .select('id, team_leader_name')
-          .eq('is_active', true)
-          .order('team_leader_name', { ascending: true }),
-
-        supabaseClient
-          .from('au_positions')
-          .select('id, position_name')
-          .eq('is_active', true)
-          .order('sort_order', { ascending: true })
+      const [storesRes, managersRes, teamLeadersRes, positionsRes] = await Promise.all([
+        supabaseClient.from('au_stores').select('id, store_name, team_leader_employee_no, group_id').eq('is_active', true).order('store_name', { ascending: true }),
+        supabaseClient.from('au_groups').select('id, group_name').eq('is_active', true).order('group_name', { ascending: true }),
+        supabaseClient.from('au_team_leaders').select('id, team_leader_name, employee_no, group_id').eq('is_active', true).order('team_leader_name', { ascending: true }),
+        supabaseClient.from('au_positions').select('id, position_name').eq('is_active', true).order('sort_order', { ascending: true })
       ]);
-
-      console.log('storesRes:', storesRes);
-      console.log('managersRes:', managersRes);
-      console.log('teamLeadersRes:', teamLeadersRes);
-      console.log('positionsRes:', positionsRes);
 
       if (storesRes.error) throw new Error(`매장 불러오기 실패: ${storesRes.error.message}`);
       if (managersRes.error) throw new Error(`담당 불러오기 실패: ${managersRes.error.message}`);
       if (teamLeadersRes.error) throw new Error(`팀장 불러오기 실패: ${teamLeadersRes.error.message}`);
       if (positionsRes.error) throw new Error(`직급 불러오기 실패: ${positionsRes.error.message}`);
+      
+      allStores = storesRes.data || [];
+      allTeamLeaders = teamLeadersRes.data || [];
 
-      appendOptions(storeSelect, storesRes.data || [], 'store_name');
-      appendOptions(managerSelect, managersRes.data || [], 'manager_name');
-      appendOptions(teamLeaderSelect, teamLeadersRes.data || [], 'team_leader_name');
       appendOptions(positionSelect, positionsRes.data || [], 'position_name');
+
+      clearSelectOptions(managerSelect, '직급을 먼저 선택하세요');
+      const rawManagers = managersRes.data || [];
+      managerSelect.dataset.rawManagers = JSON.stringify(rawManagers);
+
+      clearSelectOptions(teamLeaderSelect, '직급을 먼저 선택하세요');
+      clearSelectOptions(storeSelect, '팀장을 먼저 선택하세요');
+
+      buildHierarchyMap(teamLeadersRes.data || [], storesRes.data || []);
     }
 
     async function createSignupRequest(formData, authUserId) {
@@ -302,19 +412,14 @@
         email: formData.email.trim().toLowerCase(),
         address: formData.address.trim(),
         hire_date: formData.hire_date,
-        requested_store_id: Number(formData.requested_store_id),
-        requested_manager_id: Number(formData.requested_manager_id),
-        requested_team_leader_id: Number(formData.requested_team_leader_id),
-        requested_position_id: Number(formData.requested_position_id),
+        requested_store_id: toNullableNumber(formData.requested_store_id),
+        requested_manager_id: toNullableNumber(formData.requested_manager_id),
+        requested_team_leader_id: toNullableNumber(formData.requested_team_leader_id),
+        requested_position_id: toNullableNumber(formData.requested_position_id),
         request_status: 'pending'
       };
 
-      console.log('signup request payload:', payload);
-
-      const { error } = await supabaseClient
-        .from('au_signup_requests')
-        .insert(payload);
-
+      const { error } = await supabaseClient.from('au_signup_requests').insert(payload);
       if (error) {
         console.error('signup request error:', error);
         throw new Error(error.message);
@@ -322,24 +427,9 @@
     }
 
     async function signUpAuth(email, password) {
-      const { data, error } = await supabaseClient.auth.signUp({
-        email,
-        password
-      });
-
-      console.log('signUp data:', data);
-      console.log('signUp error:', error);
-      console.log('user:', data?.user);
-      console.log('session:', data?.session);
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (!data?.user?.id) {
-        throw new Error('회원가입 처리 중 auth user 생성에 실패.');
-      }
-
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
+      if (error) throw new Error(error.message);
+      if (!data?.user?.id) throw new Error('회원가입 처리 중 auth user 생성에 실패.');
       return data.user.id;
     }
 
@@ -348,6 +438,9 @@
       showMessage('', '');
 
       const formData = Object.fromEntries(new FormData(signupForm).entries());
+      formData.requested_manager_id = managerSelect.value;
+      formData.requested_team_leader_id = teamLeaderSelect.value;
+      formData.requested_store_id = storeSelect.value;
 
       if (formData.password !== formData.password_confirm) {
         showMessage('error', '비밀번호 확인 불일치.');
@@ -358,15 +451,11 @@
       submitBtn.textContent = '처리 중...';
 
       try {
-        const authUserId = await signUpAuth(
-          formData.email.trim().toLowerCase(),
-          formData.password
-        );
-
+        const authUserId = await signUpAuth(formData.email.trim().toLowerCase(), formData.password);
         await createSignupRequest(formData, authUserId);
 
         signupForm.reset();
-
+        applyRoleBasedFieldState();
         showMessage('success', '가입 신청 완료.');
       } catch (error) {
         console.error('signup process error:', error);
@@ -380,6 +469,8 @@
     (async function init() {
       try {
         await loadSelectOptions();
+        bindHierarchyEvents();
+        applyRoleBasedFieldState();
       } catch (error) {
         console.error('init error:', error);
         showMessage('error', `초기 데이터 로딩 실패: ${error.message}`);
