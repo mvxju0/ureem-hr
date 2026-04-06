@@ -255,6 +255,16 @@
       deleteBtn.disabled = selectedStoreId === null || isSaving;
     }
 
+    function getGroupNameById(groupId) {
+      const target = allManagers.find((group) => String(group.id) === String(groupId));
+      return target ? normalizeText(target.group_name) : '미지정';
+    }
+
+    function getTeamLeaderNameByEmployeeNo(employeeNo) {
+      const target = allTeamLeaders.find((leader) => normalizeText(leader.employee_no) === normalizeText(employeeNo));
+      return target ? normalizeText(target.team_leader_name) : '미지정';
+    }
+
     function buildStoreCard(store) {
       const isActive = toBoolean(store.is_active);
       const activeBadgeClass = isActive ? 'chip-active' : 'chip-inactive';
@@ -271,9 +281,9 @@
           </div>
           <div class="store-meta">
             <div><strong>ID</strong>${escapeHtml(store.id)}</div>
-            <div><strong>대분류</strong>구조 확장 필요</div>
-            <div><strong>소속 팀장</strong>구조 확장 필요</div>
-            <div><strong>노출 순서</strong>구조 확장 필요</div>
+            <div><strong>담당</strong>${escapeHtml(getGroupNameById(store.group_id))}</div>
+            <div><strong>소속 팀장</strong>${escapeHtml(getTeamLeaderNameByEmployeeNo(store.team_leader_employee_no))}</div>
+            <div><strong>점장 사번</strong>${escapeHtml(normalizeText(store.manager_employee_no) || '미지정')}</div>
           </div>
           <div class="card-actions">
             <button type="button" class="btn-secondary" onclick="selectStoreForEdit('${String(store.id).replaceAll("'", "\\'")}')">수정</button>
@@ -400,10 +410,6 @@
       setLoading(true);
       const s = COLUMN_MAP.store;
 
-      const hierarchyPromise = supabaseClient
-        .from('au_employees')
-        .select('current_manager_id, current_team_leader_id, current_store_id');
-
       const managersPromise = supabaseClient
         .from('au_groups')
         .select('id, group_name')
@@ -426,15 +432,10 @@
         throw new Error(`매장 데이터를 불러오지 못했어. 상세 오류: ${error.message}`);
       }
 
-      const [{ data: hierarchyRows, error: hierarchyError }, { data: managersData, error: managersError }, { data: teamLeadersData, error: teamLeadersError }] = await Promise.all([hierarchyPromise, managersPromise, teamLeadersPromise]);
-
-      if (hierarchyError) {
-        console.error('au_employees 계층 조회 오류:', hierarchyError);
-        throw new Error(`계층 매핑 데이터를 불러오지 못했어. 상세 오류: ${hierarchyError.message}`);
-      }
+      const [{ data: managersData, error: managersError }, { data: teamLeadersData, error: teamLeadersError }] = await Promise.all([managersPromise, teamLeadersPromise]);
 
       if (managersError) {
-        console.error('au_managers 조회 오류:', managersError);
+        console.error('au_groups 조회 오류:', managersError);
         throw new Error(`담당 목록을 불러오지 못했어. 상세 오류: ${managersError.message}`);
       }
 
@@ -447,7 +448,7 @@
       allManagers = Array.isArray(managersData) ? managersData : [];
       allTeamLeaders = Array.isArray(teamLeadersData) ? teamLeadersData : [];
 
-      buildHierarchyMap(hierarchyRows || []);
+      buildHierarchyMap([]);
       refreshManagerFilter();
       refreshTeamLeaderFilter();
       refreshStoreFilter();
@@ -459,7 +460,13 @@
       const s = COLUMN_MAP.store;
       const { error } = await supabaseClient
         .from('au_stores')
-        .insert([{ [s.name]: payload.storeName, [s.isActive]: payload.isActive }]);
+        .insert([{
+          [s.name]: payload.storeName,
+          [s.isActive]: payload.isActive,
+          group_id: payload.groupId ?? null,
+          team_leader_employee_no: payload.teamLeaderEmployeeNo ?? null,
+          manager_employee_no: payload.managerEmployeeNo ?? null
+        }]);
 
       if (error) {
         console.error('au_stores insert 오류:', error);
@@ -471,7 +478,13 @@
       const s = COLUMN_MAP.store;
       const { error } = await supabaseClient
         .from('au_stores')
-        .update({ [s.name]: payload.storeName, [s.isActive]: payload.isActive })
+        .update({
+          [s.name]: payload.storeName,
+          [s.isActive]: payload.isActive,
+          group_id: payload.groupId ?? null,
+          team_leader_employee_no: payload.teamLeaderEmployeeNo ?? null,
+          manager_employee_no: payload.managerEmployeeNo ?? null
+        })
         .eq(s.id, storeId);
 
       if (error) {
@@ -499,6 +512,10 @@
 
       const storeName = normalizeText(storeNameInput.value);
       const isActive = toBoolean(storeActiveInput.value);
+      const groupId = managerFilter.value ? Number(managerFilter.value) : null;
+      const selectedTeamLeaderId = teamLeaderFilter.value ? Number(teamLeaderFilter.value) : null;
+      const selectedTeamLeader = allTeamLeaders.find((leader) => Number(leader.id) === selectedTeamLeaderId);
+      const teamLeaderEmployeeNo = selectedTeamLeader?.employee_no || null;
 
       if (!storeName) {
         showFeedback('error', '매장명을 입력해줘.');
@@ -521,7 +538,7 @@
         updateSavingState(true);
         statusText.textContent = selectedStoreId === null ? '신규 매장 저장 중...' : '매장 수정 저장 중...';
 
-        const payload = { storeName, isActive };
+        const payload = { storeName, isActive, groupId, teamLeaderEmployeeNo, managerEmployeeNo: null };
 
         if (selectedStoreId === null) {
           await createStore(payload);

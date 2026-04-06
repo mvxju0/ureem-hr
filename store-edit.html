@@ -17,8 +17,7 @@
       <div class="title-area">
         <h1>매장 편성 관리</h1>
         <p>
-          관리자 전용 페이지야. 현재 DB에서 확정된 매장 필드(`id`, `store_name`, `is_active`)를 우선 관리하고,
-          대분류/팀장/노출순서는 구조 확장 항목으로 분리해 두었어.
+          관리자 전용 페이지야. 매장 기본 정보와 담당/팀장 연결 정보를 함께 관리할 수 있어.
         </p>
       </div>
       <div class="top-actions">
@@ -60,7 +59,7 @@
           <div class="field">
             <label for="majorFilter">대분류</label>
             <select id="majorFilter" disabled>
-              <option>구조 확장 필요</option>
+              <option>담당 필터는 아래 담당 선택에서 사용</option>
             </select>
           </div>
           <div class="field">
@@ -88,8 +87,7 @@
       <div id="feedbackBox" class="feedback hidden"></div>
 
       <div class="panel notice-box">
-        현재 DB 기준으로 `대분류`, `노출 순서`는 `au_stores` 확정 컬럼이 공개되지 않아 읽기/수정 로직을 넣지 않았어.
-        단, 담당→팀장→매장 드롭다운 필터는 기존 `au_employees`의 실제 연결값(current_manager_id/current_team_leader_id/current_store_id) 기반으로 적용했어.
+        담당(group_id)과 팀장(team_leader_employee_no) 필터를 통해 권역 일관성을 유지하며 매장을 관리해줘.
       </div>
 
       <div class="content-grid">
@@ -117,8 +115,7 @@
             </div>
 
             <p class="editor-note">
-              대분류/노출순서는 현재 `au_stores` 확정 컬럼이 없어 이 폼에 포함하지 않았어.
-              컬럼 확정 후 해당 필드를 활성화할 수 있어.
+              담당/팀장 선택값은 상단 필터와 연동되어 저장 시 함께 반영돼.
             </p>
 
             <div class="editor-actions">

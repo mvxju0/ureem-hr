@@ -401,12 +401,7 @@ async function loadSelectOptions() {
     supabaseClient
       .from('au_system_roles')
       .select('id, role_name')
-      .order('role_name', { ascending: true }),
-
-    supabaseClient
-      .from('au_employees')
-      .select('current_manager_id, current_team_leader_id, current_store_id')
-      .eq('is_active', true)
+      .order('role_name', { ascending: true })
   ]);
 
   if (storesRes.error) throw new Error(`매장 불러오기 실패: ${storesRes.error.message}`);

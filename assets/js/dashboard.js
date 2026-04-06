@@ -42,6 +42,7 @@
     let currentUser = null;
     let currentRole = 'viewer';
     let selectedMajorGroup = '전체';
+    const GROUP_ORDER = ['청주담당', '충북담당', '대전담당', '충남담당', '부산', '소사장'];
 
     function setAdminNavVisibility(roleName) {
       document.querySelectorAll('[data-admin-only="true"]').forEach((el) => {
@@ -54,6 +55,18 @@
     }
     function normalizeText(value) { return String(value ?? '').trim(); }
     function normalizeAccountStatus(status) { return String(status || '').toLowerCase().trim(); }
+
+    function sortGroupsWithPriority(groups) {
+      const priority = new Map(GROUP_ORDER.map((name, idx) => [name, idx]));
+      return [...groups].sort((a, b) => {
+        const an = normalizeText(a.group_name);
+        const bn = normalizeText(b.group_name);
+        const ai = priority.has(an) ? priority.get(an) : Number.MAX_SAFE_INTEGER;
+        const bi = priority.has(bn) ? priority.get(bn) : Number.MAX_SAFE_INTEGER;
+        if (ai !== bi) return ai - bi;
+        return an.localeCompare(bn, 'ko');
+      });
+    }
 
     function extractDialableNumber(phoneValue) {
       const raw = normalizeText(phoneValue);
@@ -125,7 +138,7 @@
     function renderMajorTabs() {
       majorTabList.innerHTML = '';
       const majorFilterEnabled = canUseMajorFilter();
-      const groups = ['전체', ...allGroups.map((group) => normalizeText(group.group_name)).filter(Boolean)];
+      const groups = ['전체', ...sortGroupsWithPriority(allGroups).map((group) => normalizeText(group.group_name)).filter(Boolean)];
       groups.forEach((groupName) => {
         const button = document.createElement('button');
         button.type = 'button';
@@ -411,7 +424,7 @@
       }
 
       allRows = Array.isArray(data) ? data : [];
-      allGroups = Array.isArray(groupsData) ? groupsData : [];
+      allGroups = sortGroupsWithPriority(Array.isArray(groupsData) ? groupsData : []);
       employeeGroupMap = new Map(
         (Array.isArray(employeesData) ? employeesData : [])
           .filter((row) => normalizeText(row.employee_no) !== '')
