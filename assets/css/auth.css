@@ -1,0 +1,62 @@
+body {
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  color: #111827;
+}
+.login-wrap {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 28px 22px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.10);
+  border: 1px solid #edf0f5;
+  margin: 20px auto;
+}
+.title-area { margin-bottom: 24px; text-align: center; }
+.title-area h1, h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.4px; }
+.title-area p, .desc { margin: 8px 0 0; color: #6b7280; font-size: 14px; line-height: 1.5; }
+.wrap {
+  max-width: 720px;
+  margin: 40px auto;
+  padding: 20px;
+}
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.field.full { grid-column: 1 / -1; }
+.field label, label { font-size: 13px; color: #4b5563; font-weight: 700; }
+input, select, button, textarea {
+  width: 100%;
+  border: 1px solid #d8deea;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  background: #fff;
+}
+.actions { display: grid; gap: 10px; margin-top: 18px; }
+.btn { width: 100%; border: 0; border-radius: 14px; height: 48px; font-size: 15px; font-weight: 800; cursor: pointer; }
+.btn-login, .submit-btn { background: #111827; color: #fff; border: 0; font-weight: 700; cursor: pointer; }
+.btn-signup { background: #e6007e; color: #fff; }
+.helper, .row-note { margin-top: 10px; font-size: 12px; color: #777; }
+.message, .msg {
+  margin-top: 16px;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  display: none;
+}
+.message.error, .msg.error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.message.success, .msg.success { display: block; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.loading-text { margin-top: 12px; font-size: 13px; color: #6b7280; text-align: center; display: none; }
+
+@media (max-width: 768px) {
+  .wrap { margin: 20px auto; padding: 14px; }
+  .card { padding: 20px; }
+  .grid { grid-template-columns: 1fr; }
+}
